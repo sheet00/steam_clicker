@@ -34,18 +34,18 @@ class GameState:
 
         # 各アップグレードの効果量を変数として定義
         self.work_unit_up_percent = 10  # 賃金%アップ
-        self.purchase_power_up_percent = 10  # 購入力%アップ
+        self.purchase_power_up_percent = 0.1  # 購入力%アップ
         self.auto_click_amount = 1  # 自動クリック回数（1秒あたり）
         self.auto_purchase_amount = 1  # 購入自動化回数（3秒あたり）
 
         # 各アップグレードの初期コストをselfプロパティとして定義
-        self.efficiency_tool_cost = 500
-        self.bulk_purchase_cost = 1000
-        self.auto_work_tool_cost = 500
-        self.auto_purchase_tool_cost = 500
+        self.efficiency_tool_cost = 200
+        self.bulk_purchase_cost = 200
+        self.auto_work_tool_cost = 200
+        self.auto_purchase_tool_cost = 200
 
         # 値上がり率
-        self.cost_upgrade_per = 1.1
+        self.cost_upgrade_per = 1.2
 
         # 購入自動化の設定
         self.auto_purchases = 0
@@ -59,7 +59,7 @@ class GameState:
         self.gaming_pc_income_per_game = 1  # 積みゲー1個あたりの毎秒収入（円）
         self.gaming_pc_efficiency_bonus = 0.05  # レベルごとの労働効率ボーナス（5%）
         self.gaming_pc_interval_reduction = (
-            0.01  # レベルごとの購入自動化間隔短縮率（2%）
+            0.1  # レベルごとの購入自動化間隔短縮率（2%）
         )
         self.last_pc_income_time = 0  # 最後にPCからの収入を得た時間
         self.pc_income_interval = 1.0  # PCからの収入を得る間隔（秒）
@@ -123,7 +123,8 @@ class GameState:
     def buy_game(self):
         if self.money >= self.game_price:
             self.money -= self.game_price
-            self.stock += self.purchase_power
+            # 購入力が小数の場合、四捨五入してから積みゲーに加算
+            self.stock += round(self.purchase_power)
             return True  # 購入成功
         return False  # 購入失敗
 

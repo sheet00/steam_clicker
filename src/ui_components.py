@@ -44,7 +44,7 @@ for icon_file in icon_files:
         icon_path = os.path.join(current_dir, icon_file)
         icon_image = pygame.image.load(icon_path)
         # アイコンのサイズを調整（60x60ピクセル）
-        icon_image = pygame.transform.scale(icon_image, (70, 70))
+        icon_image = pygame.transform.scale(icon_image, (100, 100))
         upgrade_icons.append(icon_image)
     except Exception as e:
         print(f"アイコン読み込みエラー: {icon_file} - {e}")
@@ -73,7 +73,7 @@ def draw_texts(screen, game_state):
     panel_width = info_panel.width - 40  # 左右のマージン20pxずつ
 
     # お金の表示（3桁カンマ区切り）- 専用の大きなエリアを確保
-    money_text = f"お金: {format_number(game_state.money)}円"
+    money_text = f"総資産: {format_number(game_state.money)}円"
     money_surface = font.render(money_text, True, BLACK)
     # お金表示用の背景を作成
     money_bg = pygame.Rect(40, 40, panel_width // 2, 40)  # 位置を上に移動
@@ -104,8 +104,14 @@ def draw_texts(screen, game_state):
     work_price_surface = button_font.render(text, True, BLACK)
     screen.blit(work_price_surface, (40, 90))  # 位置を調整
 
-    # 購入力のテキスト（3桁カンマ区切り）- 中央下
-    text = f"購入力: {format_number(game_state.purchase_power)}個/回"
+    # 購入力のテキスト（小数点1桁表示）- 中央下
+    # 小数点以下が0の場合は整数表示、それ以外は小数点1桁まで表示
+    if game_state.purchase_power == int(game_state.purchase_power):
+        power_text = format_number(int(game_state.purchase_power))
+    else:
+        power_text = f"{game_state.purchase_power:.1f}".replace(".0", "")
+
+    text = f"購入力: {power_text}個/回"
     purchase_power_surface = button_font.render(text, True, BLACK)
     purchase_x = info_panel.centerx - purchase_power_surface.get_width() // 2
     screen.blit(purchase_power_surface, (purchase_x, 90))  # 位置を調整
@@ -381,8 +387,14 @@ def draw_buttons(screen, game_state, buttons, yum_image, cold_sweat_image):
         screen.blit(yum_image, image_rect)
 
         # 購入成功メッセージを表示
+        # 小数点以下が0の場合は整数表示、それ以外は小数点1桁まで表示
+        if game_state.purchase_power == int(game_state.purchase_power):
+            power_text = format_number(int(game_state.purchase_power))
+        else:
+            power_text = f"{game_state.purchase_power:.1f}".replace(".0", "")
+
         success_text = button_font.render(
-            f"{format_number(game_state.purchase_power)}個ゲットだよ！",
+            f"{power_text}個ゲットだよ！",
             True,
             (0, 150, 0),
         )
