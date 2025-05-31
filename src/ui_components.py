@@ -221,47 +221,61 @@ def draw_income_info(screen, game_state, info_panel):
 
     # アーリーアクセスからの収入表示
     if game_state.early_access_level > 0:
-        return_percent = round(
+        # 基本の最大収益率
+        max_return_percent = round(
             game_state.early_access_level * game_state.early_access_return_percent, 2
         )
-        
+
+        # ゲーム数によるボーナス（UI表示用に計算）
+        game_bonus_percent = round((game_state.stock / 100) * 0.1, 2)
+        total_max_percent = max_return_percent + game_bonus_percent
+
         # 最後の結果に基づいて色と表示内容を決定
         if game_state.last_early_access_result != 0:
             if game_state.last_early_access_is_negative:
                 result_color = (200, 0, 0)  # 赤色（損失）
-                result_text = f" 前回: -{format_japanese_currency(abs(game_state.last_early_access_result))} (損失)"
+                result_text = f" 前回: -{format_japanese_currency(abs(game_state.last_early_access_result))} ({abs(game_state.last_early_access_actual_percent):.2f}%)"
             else:
                 result_color = (0, 150, 0)  # 緑色（利益）
-                result_text = f" 前回: +{format_japanese_currency(game_state.last_early_access_result)} (利益)"
+                result_text = f" 前回: +{format_japanese_currency(game_state.last_early_access_result)} ({game_state.last_early_access_actual_percent:.2f}%)"
         else:
             # 初回はまだ結果がない
             result_color = (100, 100, 100)
             result_text = " まだ収益が発生していません"
-        
-        # 基本の収益率表示（プラスマイナスなし）とともに結果も同じ行に表示
-        base_text = f"アーリーアクセス: ±{format_japanese_currency(int(game_state.total_early_access_investment * (return_percent / 100)))}/{game_state.early_access_interval}秒 ({return_percent:.2f}%)"
-        
+
+        # 基本の収益率表示
+        expected_max = int(
+            game_state.total_early_access_investment * (total_max_percent / 100)
+        )
+
+        # ゲームボーナスがある場合は表示に追加
+        if game_bonus_percent > 0:
+            bonus_text = f" +ゲームボーナス{game_bonus_percent:.2f}%"
+            base_text = f"アーリーアクセス: 最大{format_japanese_currency(expected_max)}/{game_state.early_access_interval}秒 (0～{max_return_percent:.2f}%{bonus_text})"
+        else:
+            base_text = f"アーリーアクセス: 最大{format_japanese_currency(expected_max)}/{game_state.early_access_interval}秒 (0～{max_return_percent:.2f}%)"
+
         # 基本情報の表示
         early_access_surface = button_font.render(base_text, True, (150, 100, 0))
-        
+
         # 結果テキストを表示（別の Surface に）
         result_surface = button_font.render(result_text, True, result_color)
-        
+
         # 投資額も表示
         investment_text = f"総投資額: {format_japanese_currency(game_state.total_early_access_investment)}"
         investment_surface = button_font.render(investment_text, True, (150, 100, 0))
-        
+
         # 表示位置
         early_access_x = 60
         early_access_y = 150
-        
+
         # まず基本情報を表示
         screen.blit(early_access_surface, (early_access_x, early_access_y))
-        
+
         # 結果テキストを基本情報の右側に表示
         result_x = early_access_x + early_access_surface.get_width()
         screen.blit(result_surface, (result_x, early_access_y))
-        
+
         # 投資額は2行目に表示
         screen.blit(investment_surface, (early_access_x, early_access_y + 30))
 

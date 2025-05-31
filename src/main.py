@@ -48,14 +48,14 @@ class GameState:
 
         # アーリーアクセス関連の設定
         self.early_access_level = 0  # アーリーアクセスのレベル
-        self.early_access_return_percent = (
-            1000  # 基本の資産増加率（%）- 小数点2桁で管理
-        )
+        self.early_access_return_percent = 100  # 基本の資産増加率（%）- 小数点2桁で管理
         self.early_access_interval = 1.0  # 収益が発生する間隔（秒）
         self.last_early_access_return = 0  # 最後に収益が発生した時間
         self.total_early_access_investment = 0  # アーリーアクセスへの総投資額
         self.last_early_access_result = 0  # 最後のアーリーアクセス収益結果
         self.last_early_access_is_negative = False  # 最後の結果がマイナスだったか
+        self.last_early_access_actual_percent = 0.0  # 最後に適用された実際の収益率
+        self.last_early_access_game_bonus = 0.0  # ゲーム数によるボーナス収益率
 
         # 値上がり率
         self.upgrade_cost_multiplier = 1.2  # アップグレードの値上がり率
@@ -208,14 +208,17 @@ class GameState:
                 self.total_early_access_investment += upgrade["cost"]
 
                 # 収益率を更新（レベルごとに基本収益率が加算される）- 小数点2桁で丸める
-                current_return_percent = round(
+                max_return_percent = round(
                     self.early_access_level * self.early_access_return_percent, 2
                 )
+
+                # 保有ゲーム数によるボーナスの説明を追加
+                game_bonus_text = "（ゲーム数に応じてボーナス追加！上限なし）"
 
                 # 価格上昇
                 upgrade["cost"] = int(upgrade["cost"] * self.upgrade_cost_multiplier)
                 upgrade["description"] = (
-                    f"開発中のゲームに投資！投資額の±{current_return_percent:.2f}%が還元 (Lv.{self.early_access_level})"
+                    f"開発中のゲームに投資！投資額の0～{max_return_percent:.2f}%+ゲーム数ボーナスが還元 (Lv.{self.early_access_level})"
                 )
 
                 return True  # 購入成功
@@ -272,18 +275,25 @@ class GameState:
                 elapsed_early_access >= self.early_access_interval
             ):  # 設定した間隔ごとに収入
                 # 投資額に対して収益率を適用 - 小数点2桁で丸める
-                return_percent = round(
+                max_return_percent = round(
                     self.early_access_level * self.early_access_return_percent, 2
                 )
 
-                # 1/2の確率でマイナスになる
-                is_negative = random.random() < 0.5
+                # 保有ゲーム数によるボーナス
+                game_bonus_percent = round((self.stock / 100) * 0.1, 2)
+                max_return_percent += game_bonus_percent
+
+                # 0%から最大収益率までのランダムな値を生成
+                actual_return_percent = round(random.uniform(0, max_return_percent), 2)
+
+                # 6:4の確率で増加または減少を決定
+                is_negative = random.random() < 0.4  # 40%の確率で減少
                 if is_negative:
-                    return_percent = -return_percent  # マイナスにする
+                    actual_return_percent = -actual_return_percent  # マイナスにする
 
                 # 収益額を計算
                 return_amount = int(
-                    self.total_early_access_investment * (return_percent / 100)
+                    self.total_early_access_investment * (actual_return_percent / 100)
                 )
 
                 # 収益を加算（マイナスの場合は減算）
@@ -295,6 +305,8 @@ class GameState:
                 # 今回の結果を記録（UI表示用）
                 self.last_early_access_result = return_amount
                 self.last_early_access_is_negative = is_negative
+                self.last_early_access_actual_percent = actual_return_percent
+                self.last_early_access_game_bonus = game_bonus_percent
 
 
 def main():
@@ -305,6 +317,9 @@ def main():
     # メインボタンの設定 - 中央に大きく配置
     work_button = pygame.Rect(0, 0, 300, 120)  # 位置は後で調整
     buy_button = pygame.Rect(0, 0, 300, 120)  # 位置は後で調整
+    
+    # リセットボタンの設定 - 左上に小さく配置
+    reset_button = pygame.Rect(20, 20, 100, 40)  # 左上に固定位置
 
     # アップグレードボタンの設定 - 右側に縦に並べる
     upgrade_buttons = []
@@ -330,6 +345,10 @@ def main():
     clicked_button = None
     click_time = 0
     clicked_upgrade = None
+    
+    # リセットボタンの色
+    RESET_COLOR = (200, 50, 50)
+    RESET_HOVER_COLOR = (220, 70, 70)
 
     while True:
         current_time = pygame.time.get_ticks() / 1000  # 秒単位の現在時刻
@@ -369,6 +388,17 @@ def main():
                         if success:  # 購入に成功した場合のみ
                             clicked_upgrade = i
                             click_time = current_time
+                
+                # リセットボタンがクリックされた場合
+                if reset_button.collidepoint(mouse_pos):
+                    # ゲームステータスをリセット
+                    game_state = GameState()
+                    game_state.last_auto_update = current_time
+                    game_state.last_auto_purchase = current_time
+                    game_state.last_pc_income_time = current_time
+                    game_state.last_early_access_return = current_time
+                    clicked_button = "reset"
+                    click_time = current_time
 
         # マウスカーソルの位置を取得
         mouse_pos = pygame.mouse.get_pos()
