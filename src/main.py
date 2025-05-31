@@ -35,7 +35,7 @@ class GameState:
 
         # 各アップグレードの効果量を変数として定義
         self.work_unit_up_percent = 1000  # 賃金%アップ
-        self.purchase_power_up_percent = 2  # 購入数%アップ
+        self.purchase_power_up_percent = 200  # 購入数%アップ
         self.auto_click_amount = 100  # 自動クリック回数（1秒あたり）
         self.auto_purchase_amount = 100  # 購入自動化回数（3秒あたり）
 
@@ -87,7 +87,7 @@ class GameState:
                 "description": f"賃金+{self.work_unit_up_percent}%アップ",
             },
             {
-                "name": "バルクゲーム購入",
+                "name": "同時購入数アップ",
                 "cost": self.bulk_purchase_cost,
                 "effect": self.purchase_power_up_percent,  # 購入数アップ率（%）
                 "count": 0,
@@ -144,7 +144,7 @@ class GameState:
         # 購入数分の合計金額を計算
         game_price_int = int(self.game_price)
         max_purchase = round(self.purchase_count)  # 購入数（最大購入可能数）
-        
+
         # お金が足りない場合は、買える分だけ買う
         if self.money < game_price_int * max_purchase:
             # 買える最大数を計算（少なくとも1個は買えるようにする）
@@ -154,17 +154,17 @@ class GameState:
         else:
             # お金が十分ある場合は購入数分すべて買う
             actual_purchase = max_purchase
-            
+
         # 実際の支払い金額を計算
         total_cost = game_price_int * actual_purchase
-        
+
         if self.money >= total_cost and actual_purchase > 0:
             self.money -= total_cost  # 合計金額を支払い
             self.stock += actual_purchase  # 実際に購入した数を加算
-            
+
             # ゲーム価格を上昇させる（内部的には小数で計算）
             self.game_price = self.game_price * self.game_cost_multiplier
-            
+
             return actual_purchase  # 実際に購入した数を返す
         return 0  # 購入失敗（お金が1個分もない場合）
 
@@ -179,8 +179,10 @@ class GameState:
                 # 現在の賃金に対して指定パーセント分アップ
                 increase_amount = int(self.work_unit_price * (upgrade["effect"] / 100))
                 self.work_unit_price += increase_amount
-            elif index == 1:  # バルクゲーム購入
-                self.purchase_count += upgrade["effect"]
+            elif index == 1:  # 同時購入数アップ
+                # 現在の購入数に対して指定パーセント分アップ
+                increase_amount = self.purchase_count * (upgrade["effect"] / 100)
+                self.purchase_count += increase_amount
             elif index == 2:  # 労働自動化ツール
                 self.auto_clicks += upgrade["effect"]
             elif index == 3:  # 購入自動化ツール
@@ -447,9 +449,11 @@ def main():
             "click_time": click_time,
             "current_time": current_time,
         }
-        
+
         # 購入数情報を追加（購入ボタンがクリックされた場合のみ）
-        if clicked_button == "buy" and current_time - click_time < 0.4:  # アニメーション中のみ
+        if (
+            clicked_button == "buy" and current_time - click_time < 0.4
+        ):  # アニメーション中のみ
             buttons["purchased_count"] = purchased_count  # 購入数を記録
 
         # 画面の描画
