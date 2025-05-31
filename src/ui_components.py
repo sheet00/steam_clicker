@@ -29,9 +29,9 @@ def draw_texts(screen, game_state):
     """テキストを描画する関数"""
     # 上段：情報パネルの背景（画面幅いっぱいに広げる）
     screen_width = screen.get_width()
-    info_panel = pygame.Rect(20, 20, screen_width - 40, 200)
+    info_panel = pygame.Rect(20, 20, screen_width - 40, 150)  # 高さを小さく
     pygame.draw.rect(screen, LIGHT_GRAY, info_panel, border_radius=15)
-    pygame.draw.rect(screen, BLACK, info_panel, 2, border_radius=15)  # 枠線
+    pygame.draw.rect(screen, BLACK, info_panel, 3, border_radius=15)  # 枠線を太く
 
     # タイトル
     title_surface = title_font.render("Steamクリッカー", True, BLACK)
@@ -103,30 +103,22 @@ def draw_buttons(screen, game_state, buttons, yum_image, cold_sweat_image):
     upgrade_buttons = buttons.get("upgrade_buttons", [])
 
     # 中段左：ボタンパネル
-    button_panel = pygame.Rect(20, 230, screen_width // 2 - 40, screen_height - 250)
+    button_panel = pygame.Rect(20, 190, screen_width // 2 - 40, screen_height - 210)
     pygame.draw.rect(screen, (230, 240, 250), button_panel, border_radius=15)
-    pygame.draw.rect(screen, (100, 120, 150), button_panel, 2, border_radius=15)  # 枠線
-
-    # ボタンパネルのタイトル
-    button_title = title_font.render("アクション", True, BLACK)
-    screen.blit(
-        button_title,
-        (
-            button_panel.centerx - button_title.get_width() // 2,
-            button_panel.top + 30,
-        ),  # タイトル位置を調整
-    )
+    pygame.draw.rect(
+        screen, (100, 120, 150), button_panel, 3, border_radius=15
+    )  # 枠線を太く
 
     # ボタンの位置を中央に配置
     work_button.width = 300
     work_button.height = 120
     work_button.centerx = button_panel.centerx
-    work_button.top = button_panel.top + 100  # 位置を調整
+    work_button.top = button_panel.top + 50  # 位置を上に調整
 
     buy_button.width = 300
     buy_button.height = 120
     buy_button.centerx = button_panel.centerx
-    buy_button.top = work_button.bottom + 80  # 間隔を広げる
+    buy_button.top = work_button.bottom + 50  # 間隔を調整
 
     # 労働ボタンの色
     if clicked_button == "work" and current_time - click_time < animation_duration:
@@ -166,35 +158,24 @@ def draw_buttons(screen, game_state, buttons, yum_image, cold_sweat_image):
 
     # 中段右：アップグレードセクションの背景パネル
     upgrade_panel = pygame.Rect(
-        screen_width // 2 + 20, 230, screen_width // 2 - 40, screen_height - 250
+        screen_width // 2 + 20, 190, screen_width // 2 - 40, screen_height - 210
     )
     pygame.draw.rect(
         screen, (245, 240, 250), upgrade_panel, border_radius=20
     )  # 薄い紫色の背景
-    pygame.draw.rect(screen, (100, 50, 150), upgrade_panel, 2, border_radius=20)  # 枠線
-
-    # アップグレードセクションのタイトル
-    upgrade_title = title_font.render("アップグレード", True, BLACK)
-    screen.blit(
-        upgrade_title,
-        (
-            upgrade_panel.centerx - upgrade_title.get_width() // 2,
-            upgrade_panel.top + 30,  # タイトル位置を調整
-        ),
-    )
+    pygame.draw.rect(
+        screen, (100, 50, 150), upgrade_panel, 3, border_radius=20
+    )  # 枠線を太く
 
     # アップグレードボタンの位置を調整
-    button_spacing = 50  # ボタン間の間隔を適切に設定
-    total_buttons_height = (
-        len(upgrade_buttons) * 90 + (len(upgrade_buttons) - 1) * button_spacing
-    )
-    start_y = upgrade_panel.top + 80  # 開始位置を調整
+    button_spacing = 80  # ボタン間の間隔
+    start_y = upgrade_panel.top + 40  # 開始位置を上に調整
 
     # アップグレードボタンの描画
     for i, button in enumerate(upgrade_buttons):
         # ボタンの位置を設定
         button.width = 300
-        button.height = 100  # 高さを適切に調整
+        button.height = 90  # 高さを少し小さく
         button.centerx = upgrade_panel.centerx
         button.top = start_y + i * (button.height + button_spacing)
 
@@ -202,15 +183,17 @@ def draw_buttons(screen, game_state, buttons, yum_image, cold_sweat_image):
 
         # ボタンとその説明をワンセットとして背景を描画
         set_rect = pygame.Rect(
-            button.left - 10,
-            button.top - 10,
-            button.width + 20,
-            button.height + 35,  # 説明文のスペースを適切に調整
+            button.left - 20,  # 左側の余白
+            button.top - 20,  # 上側の余白
+            button.width + 40,  # 右側の余白
+            button.height + 60,  # 説明文のスペースを十分に確保
         )
         pygame.draw.rect(
-            screen, (230, 225, 240), set_rect, border_radius=10
+            screen, (230, 225, 240), set_rect, border_radius=15
         )  # 薄い背景色
-        pygame.draw.rect(screen, (130, 100, 170), set_rect, 2, border_radius=10)  # 枠線
+        pygame.draw.rect(
+            screen, (130, 100, 170), set_rect, 3, border_radius=15
+        )  # 枠線を太く
 
         # ボタンの色（クリック時は暗く）
         if clicked_upgrade == i and current_time - click_time < animation_duration:
@@ -248,9 +231,8 @@ def draw_buttons(screen, game_state, buttons, yum_image, cold_sweat_image):
 
         # 説明テキスト
         desc_text = small_font.render(upgrade["description"], True, BLACK)
-        desc_rect = desc_text.get_rect(
-            midtop=(button.centerx, button.bottom + 5)
-        )  # 間隔を適切に調整
+        # 説明テキストの位置をボタンの下部から25px下に配置（枠内に収まるように）
+        desc_rect = desc_text.get_rect(center=(button.centerx, button.bottom + 25))
         screen.blit(desc_text, desc_rect)
 
     # クリックされたボタンに応じて画像を表示（固定位置：購入ボタンの下）

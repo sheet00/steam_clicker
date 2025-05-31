@@ -41,8 +41,8 @@ class GameState:
         # 各アップグレードの初期コストをselfプロパティとして定義
         self.efficiency_tool_cost = 500
         self.bulk_purchase_cost = 1000
-        self.auto_work_tool_cost = 2000
-        self.auto_purchase_tool_cost = 1000
+        self.auto_work_tool_cost = 500
+        self.auto_purchase_tool_cost = 500
 
         # 値上がり率
         self.cost_upgrade_per = 1.1
