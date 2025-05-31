@@ -3,16 +3,22 @@ import pygame
 import os
 import sys
 from pygame.locals import *
-from ui_components import draw_texts, draw_buttons
+from ui_components import (
+    draw_texts,
+    draw_buttons,
+    init_particle_manager,
+    BACKGROUND_PRIMARY,
+)
 from config_loader import load_env_file
+import pygame.gfxdraw  # グラスモーフィズム効果のために追加
 
 # 画面設定
-WINDOW_WIDTH = 1800
-WINDOW_HEIGHT = 1280
+WINDOW_WIDTH = 1200  # 画面幅を調整
+WINDOW_HEIGHT = 800  # 画面高さを調整
 
-# 色の定義
-WHITE = (255, 255, 255)
-BLACK = (0, 0, 0)
+# 色の定義 (ui_components.pyで定義されているため削除)
+# WHITE = (255, 255, 255)
+# BLACK = (0, 0, 0)
 
 pygame.init()
 
@@ -380,22 +386,59 @@ class GameState:
 
 
 def main():
-
     screen = pygame.display.set_mode((WINDOW_WIDTH, WINDOW_HEIGHT))
     pygame.display.set_caption("Steamクリッカー")
 
-    # メインボタンの設定 - 中央に大きく配置
-    work_button = pygame.Rect(0, 0, 300, 120)  # 位置は後で調整
-    buy_button = pygame.Rect(0, 0, 300, 120)  # 位置は後で調整
+    # パーティクルマネージャーを初期化
+    init_particle_manager()
 
-    # リセットボタンの設定 - 左上に小さく配置（ヘッダと被らないように位置調整）
-    reset_button = pygame.Rect(20, 230, 100, 40)  # 位置を下に移動
+    # メインボタンの設定
+    # 画面中央の左半分に配置
+    main_panel_width = WINDOW_WIDTH // 2 - 80
+    main_panel_height = WINDOW_HEIGHT - 300
+    main_panel_x = WINDOW_WIDTH // 2 - main_panel_width // 2
+    main_panel_y = 260
 
-    # アップグレードボタンの設定 - 右側に縦に並べる
+    work_button_width = 300
+    work_button_height = 120
+    work_button = pygame.Rect(
+        main_panel_x + (main_panel_width - work_button_width) // 2,
+        main_panel_y + 50,
+        work_button_width,
+        work_button_height,
+    )
+
+    buy_button_width = 300
+    buy_button_height = 120
+    buy_button = pygame.Rect(
+        main_panel_x + (main_panel_width - buy_button_width) // 2,
+        work_button.bottom + 50,
+        buy_button_width,
+        buy_button_height,
+    )
+
+    # リセットボタンの設定 - 右上に小さく配置
+    reset_button = pygame.Rect(WINDOW_WIDTH - 120, 40, 80, 30)
+
+    # アップグレードボタンの設定 - 右側に2列で並べる
     upgrade_buttons = []
     game_state = GameState()
+    upgrade_panel_width = WINDOW_WIDTH // 2 - 80
+    card_width = (upgrade_panel_width - 60) // 2  # 2列表示
+    card_height = 150
+    margin_top = 30
+    margin_left = 30
+    card_spacing_x = 20
+    card_spacing_y = 20
+    upgrade_panel_x = WINDOW_WIDTH // 2 + 40
+    upgrade_panel_y = 260
+
     for i in range(len(game_state.upgrades)):  # アップグレード数に応じて動的に生成
-        upgrade_buttons.append(pygame.Rect(0, 0, 300, 150))  # 位置は後で調整
+        row = i // 2
+        col = i % 2
+        x = upgrade_panel_x + margin_left + col * (card_width + card_spacing_x)
+        y = upgrade_panel_y + margin_top + row * (card_height + card_spacing_y)
+        upgrade_buttons.append(pygame.Rect(x, y, card_width, card_height))
 
     clock = pygame.time.Clock()
     game_state = GameState()
@@ -493,7 +536,7 @@ def main():
                 pygame.mouse.set_cursor(default_cursor)  # デフォルトカーソルに戻す
 
         # 画面の描画
-        screen.fill(WHITE)
+        screen.fill(BACKGROUND_PRIMARY)
 
         # ボタン情報を辞書にまとめて引数を整理
         buttons = {
@@ -513,9 +556,8 @@ def main():
         ):  # アニメーション中のみ
             buttons["purchased_count"] = purchased_count  # 購入数を記録
 
-        # 画面の描画
-        screen.fill(WHITE)
-        draw_texts(screen, game_state)
+        # 画面の描画 (背景は既に描画済み)
+        draw_texts(screen, game_state)  # draw_stats_cardsを呼び出す
         draw_buttons(screen, game_state, buttons, yum_image, cold_sweat_image)
 
         pygame.display.update()
