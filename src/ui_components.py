@@ -101,12 +101,12 @@ def format_japanese_currency(number):
     return f"{number:,}円"  # 念のためのフォールバック
 
 
-def format_purchase_power(purchase_power):
-    """購入力を適切にフォーマットする関数"""
-    if purchase_power == int(purchase_power):
-        return format_number(int(purchase_power))
+def format_purchase_count(purchase_count):
+    """購入数を適切にフォーマットする関数"""
+    if purchase_count == int(purchase_count):
+        return format_number(int(purchase_count))
     else:
-        return f"{purchase_power:.1f}".replace(".0", "")
+        return f"{purchase_count:.1f}".replace(".0", "")
 
 
 def draw_info_panel(screen, game_state):
@@ -159,9 +159,9 @@ def draw_basic_info(screen, game_state, info_panel):
     work_price_surface = button_font.render(text, True, BLACK)
     screen.blit(work_price_surface, (60, 90))  # 左マージンを40から60に増やした
 
-    # 購入力の表示
-    power_text = format_purchase_power(game_state.purchase_power)
-    text = f"購入力: {power_text}個/回"
+    # 購入数の表示
+    power_text = format_purchase_count(game_state.purchase_count)
+    text = f"購入数: {power_text}個/回"
     purchase_power_surface = button_font.render(text, True, BLACK)
     purchase_x = info_panel.centerx - purchase_power_surface.get_width() // 2
     screen.blit(purchase_power_surface, (purchase_x, 90))
@@ -486,7 +486,7 @@ def draw_click_feedback(screen, game_state, buttons, yum_image, cold_sweat_image
 
     # 購入ボタンがクリックされた場合
     if clicked_button == "buy":
-        draw_buy_feedback(screen, game_state, fixed_img_pos, yum_image)
+        draw_buy_feedback(screen, game_state, fixed_img_pos, yum_image, buttons)
 
     # 労働ボタンがクリックされた場合
     elif clicked_button == "work":
@@ -506,15 +506,15 @@ def draw_click_feedback(screen, game_state, buttons, yum_image, cold_sweat_image
         screen.blit(reset_text, text_rect)
 
 
-def draw_buy_feedback(screen, game_state, position, yum_image):
+def draw_buy_feedback(screen, game_state, position, yum_image, buttons):
     """購入時のフィードバックを描画する関数"""
     # 画像を表示
     image_rect = yum_image.get_rect(midtop=position)
     screen.blit(yum_image, image_rect)
 
     # 購入成功メッセージを表示
-    power_text = format_purchase_power(game_state.purchase_power)
-    success_text = button_font.render(f"{power_text}個ゲットだよ！", True, (0, 150, 0))
+    purchased_count = buttons.get("purchased_count", 1)  # デフォルトは1
+    success_text = button_font.render(f"ゲームを{purchased_count}個購入したよ！", True, (0, 150, 0))
     text_rect = success_text.get_rect(
         midtop=(position[0], position[1] + yum_image.get_height() + 10)
     )
