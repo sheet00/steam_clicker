@@ -39,37 +39,40 @@ def draw_texts(screen, game_state):
         title_surface, (info_panel.centerx - title_surface.get_width() // 2, 30)
     )
 
-    # 情報を横に並べて表示
-    # お金の表示（3桁カンマ区切り）
-    money_surface = font.render(
-        f"お金: {format_number(game_state.money)}円", True, BLACK
-    )
+    # 情報パネルを3つのセクションに分ける
+    panel_width = info_panel.width - 40  # 左右のマージン20pxずつ
+    
+    # お金の表示（3桁カンマ区切り）- 専用の大きなエリアを確保
+    money_text = f"お金: {format_number(game_state.money)}円"
+    money_surface = font.render(money_text, True, BLACK)
+    # お金表示用の背景を作成
+    money_bg = pygame.Rect(40, 80, panel_width // 2, 40)
+    # お金は左寄せで表示
     screen.blit(money_surface, (40, 80))
-
-    # 積みゲーの表示（3桁カンマ区切り）
-    stock_surface = font.render(
-        f"積みゲー: {format_number(game_state.stock)}個", True, BLACK
-    )
-    stock_x = info_panel.centerx - stock_surface.get_width() // 2
+    
+    # 積みゲーの表示（3桁カンマ区切り）- 右上
+    stock_text = f"積みゲー: {format_number(game_state.stock)}個"
+    stock_surface = font.render(stock_text, True, BLACK)
+    stock_x = info_panel.right - stock_surface.get_width() - 40
     screen.blit(stock_surface, (stock_x, 80))
-
-    # 賃金のテキスト（3桁カンマ区切り）
+    
+    # 賃金のテキスト（3桁カンマ区切り）- 左下
     text = f"賃金: {format_number(game_state.work_unit_price)}円"
     work_price_surface = button_font.render(text, True, BLACK)
     screen.blit(work_price_surface, (40, 130))
 
-    # 購入力のテキスト（3桁カンマ区切り）
+    # 購入力のテキスト（3桁カンマ区切り）- 中央下
     text = f"購入力: {format_number(game_state.purchase_power)}個/回"
     purchase_power_surface = button_font.render(text, True, BLACK)
     purchase_x = info_panel.centerx - purchase_power_surface.get_width() // 2
     screen.blit(purchase_power_surface, (purchase_x, 130))
-
-    # 自動収入のテキスト（3桁カンマ区切り）
-    if game_state.auto_income > 0:
-        text = f"自動収入: {format_number(game_state.auto_income)}円/秒"
-        auto_income_surface = button_font.render(text, True, (0, 100, 0))
-        auto_x = info_panel.right - auto_income_surface.get_width() - 40
-        screen.blit(auto_income_surface, (auto_x, 80))
+    
+    # 自動クリックのテキスト（3桁カンマ区切り）- 右下
+    if game_state.auto_clicks > 0:
+        text = f"自動クリック: {format_number(game_state.auto_clicks)}回/秒"
+        auto_clicks_surface = button_font.render(text, True, (0, 100, 0))
+        auto_x = info_panel.right - auto_clicks_surface.get_width() - 40
+        screen.blit(auto_clicks_surface, (auto_x, 130))
 
 
 def draw_buttons(screen, game_state, buttons, yum_image, cold_sweat_image):
@@ -208,9 +211,7 @@ def draw_buttons(screen, game_state, buttons, yum_image, cold_sweat_image):
 
         # ボタンテキスト
         name_text = button_font.render(upgrade["name"], True, WHITE)
-        cost_text = button_font.render(
-            f"{format_number(upgrade['cost'])}円", True, WHITE
-        )
+        cost_text = button_font.render(f"{format_number(upgrade['cost'])}円", True, WHITE)
         count_text = button_font.render(f"所持: {upgrade['count']}", True, WHITE)
 
         # テキスト位置
@@ -261,3 +262,9 @@ def draw_buttons(screen, game_state, buttons, yum_image, cold_sweat_image):
             )
         )
         screen.blit(earned_text, text_rect)
+        
+        # 効果音を鳴らす代わりに視覚的なフィードバック
+        if game_state.work_unit_price >= 1000:
+            bonus_text = small_font.render("がんばったね！", True, (200, 0, 100))
+            bonus_rect = bonus_text.get_rect(midtop=(fixed_img_pos[0], text_rect.bottom + 5))
+            screen.blit(bonus_text, bonus_rect)

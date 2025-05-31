@@ -29,9 +29,9 @@ class GameState:
         self.game_price = 100
 
         # 各アップグレードの効果量を変数として定義
-        self.work_unit_up_amount = 1000
-        self.purchase_power_up_amount = 10
-        self.auto_income_up_amount = 10000
+        self.work_unit_up_percent = 50  # 賃金50%アップ
+        self.purchase_power_up_percent = 20  # 購入力20%アップ
+        self.auto_click_amount = 1  # 自動クリック回数（1秒あたり）
 
         # 各アップグレードの初期コストをselfプロパティとして定義
         self.efficiency_tool_cost = 500
@@ -46,29 +46,29 @@ class GameState:
             {
                 "name": "効率化ツール",
                 "cost": self.efficiency_tool_cost,
-                "effect": self.work_unit_up_amount,  # 賃金アップ量
+                "effect": self.work_unit_up_percent,  # 賃金アップ率（%）
                 "count": 0,
-                "description": f"賃金+{self.work_unit_up_amount}円",
+                "description": f"賃金+{self.work_unit_up_percent}%アップ",
             },
             {
                 "name": "バルクゲーム購入",
                 "cost": self.bulk_purchase_cost,
-                "effect": self.purchase_power_up_amount,  # 購入力アップ量
+                "effect": self.purchase_power_up_percent,  # 購入力アップ率（%）
                 "count": 0,
-                "description": f"一度に購入するゲーム数+{self.purchase_power_up_amount}",
+                "description": f"購入力+{self.purchase_power_up_percent}%アップ",
             },
             {
                 "name": "自動労働ツール",
                 "cost": self.auto_work_tool_cost,
-                "effect": self.auto_income_up_amount,  # 自動労働の秒間獲得額
+                "effect": self.auto_click_amount,  # 1秒あたりの自動クリック回数
                 "count": 0,
-                "description": f"毎秒{self.auto_income_up_amount}円を自動獲得",
+                "description": f"毎秒{self.auto_click_amount}回、自動的に労働ボタンをクリック",
             },
         ]
 
-        # 自動労働の秒間獲得額
-        self.auto_income = 0
-        # 最後の自動収入更新時間
+        # 自動クリック回数（1秒あたり）
+        self.auto_clicks = 0
+        # 最後の自動クリック更新時間
         self.last_auto_update = 0
 
     def click_work(self):
@@ -90,11 +90,15 @@ class GameState:
 
             # アップグレードの効果を適用
             if index == 0:  # 効率化ツール
-                self.work_unit_price += upgrade["effect"]
+                # 現在の賃金に対して指定パーセント分アップ
+                increase_amount = int(self.work_unit_price * (upgrade["effect"] / 100))
+                self.work_unit_price += increase_amount
             elif index == 1:  # バルクゲーム購入
-                self.purchase_power += upgrade["effect"]
+                # 現在の購入力に対して指定パーセント分アップ
+                increase_amount = max(1, int(self.purchase_power * (upgrade["effect"] / 100)))
+                self.purchase_power += increase_amount
             elif index == 2:  # 自動労働ツール
-                self.auto_income += upgrade["effect"]
+                self.auto_clicks += upgrade["effect"]
 
             # 価格上昇（購入するたびに1.5倍に）
             upgrade["cost"] = int(upgrade["cost"] * self.cost_upgrade_per)
@@ -103,7 +107,9 @@ class GameState:
         # 前回の更新から経過した時間（秒）
         elapsed = current_time - self.last_auto_update
         if elapsed >= 1.0:  # 1秒以上経過していたら
-            self.money += self.auto_income
+            # 自動クリック回数分だけ労働ボタンをクリックした効果を得る
+            for _ in range(self.auto_clicks):
+                self.click_work()
             self.last_auto_update = current_time
 
 
@@ -139,7 +145,7 @@ def main():
     while True:
         current_time = pygame.time.get_ticks() / 1000  # 秒単位の現在時刻
 
-        # 自動収入の更新
+        # 自動クリックの更新
         game_state.update_auto_income(current_time)
 
         for event in pygame.event.get():
