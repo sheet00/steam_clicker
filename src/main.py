@@ -115,14 +115,14 @@ class GameState:
                 "cost": self.efficiency_tool_cost,
                 "effect": self.work_unit_up_percent,  # 賃金アップ率（%）
                 "count": 0,
-                "description": f"賃金+{self.work_unit_up_percent}%アップ",
+                "description": f"賃金が{self.work_unit_up_percent}%アップ",
             },
             {
                 "name": "同時購入数アップ",
                 "cost": self.bulk_purchase_cost,
                 "effect": self.purchase_power_up_percent,  # 購入数アップ率（%）
                 "count": 0,
-                "description": f"購入数+{self.purchase_power_up_percent}%アップ",
+                "description": f"購入数が{self.purchase_power_up_percent}%アップ",
             },
             {
                 "name": "労働自動化ツール",
@@ -136,7 +136,7 @@ class GameState:
                 "cost": self.auto_purchase_tool_cost,
                 "effect": self.auto_purchase_up_percent,  # 購入自動化%アップ
                 "count": 0,
-                "description": f"毎秒の自動購入回数+{self.auto_purchase_up_percent}%アップ",
+                "description": f"{self.auto_purchase_interval:.1f}秒ごとの自動購入回数+{self.auto_purchase_up_percent}%アップ",
             },
             {
                 "name": "ゲーミングPC",

@@ -9,8 +9,23 @@ DARK_BLUE = (0, 0, 180)  # クリック時の色
 GREEN = (0, 200, 0)
 DARK_GREEN = (0, 150, 0)  # クリック時の色
 LIGHT_GRAY = (240, 240, 240)  # 背景パネル用
-PURPLE = (150, 50, 200)
-DARK_PURPLE = (100, 30, 150)
+GRAY = (150, 150, 150)
+DARK_GRAY = (100, 100, 100)
+OFF_WHITE = (245, 245, 245)
+SLATE_PURPLE = (180, 180, 180)
+LIGHT_GRAY_PANEL = (240, 240, 240)
+BUTTON_PANEL_BG = (230, 230, 230)
+BUTTON_PANEL_BORDER = (100, 100, 100)
+UPGRADE_PANEL_BG = (240, 240, 240)
+UPGRADE_BUTTON_NORMAL = (200, 200, 200)
+UPGRADE_BUTTON_CLICKED = (150, 150, 150)
+UPGRADE_FEEDBACK_TEXT = (100, 100, 100)
+BUY_FEEDBACK_SUCCESS = (0, 150, 0)
+WORK_FEEDBACK_EARNED = (0, 0, 150)
+WORK_FEEDBACK_BONUS = (200, 0, 100)
+RESET_FEEDBACK_MAIN = (200, 50, 50)
+RESET_FEEDBACK_SUB = (100, 100, 100)
+
 
 # フォント設定
 pygame.init()
@@ -292,8 +307,8 @@ def draw_main_buttons(screen, game_state, buttons, current_time, click_time):
 
     # ボタンパネルの描画
     button_panel = pygame.Rect(40, 260, screen_width // 2 - 60, screen_height - 300)
-    pygame.draw.rect(screen, (230, 240, 250), button_panel, border_radius=15)
-    pygame.draw.rect(screen, (100, 120, 150), button_panel, 3, border_radius=15)
+    pygame.draw.rect(screen, BUTTON_PANEL_BG, button_panel, border_radius=15)
+    pygame.draw.rect(screen, BUTTON_PANEL_BORDER, button_panel, 3, border_radius=15)
 
     # ボタンの位置設定
     work_button.width = 300
@@ -359,8 +374,8 @@ def draw_upgrade_panel(screen, game_state, buttons, current_time, click_time):
         screen_width // 2 - 80,
         screen_height - 300,
     )
-    pygame.draw.rect(screen, (245, 240, 250), upgrade_panel, border_radius=20)
-    pygame.draw.rect(screen, (100, 50, 150), upgrade_panel, 3, border_radius=20)
+    pygame.draw.rect(screen, UPGRADE_PANEL_BG, upgrade_panel, border_radius=20)
+    pygame.draw.rect(screen, SLATE_PURPLE, upgrade_panel, 3, border_radius=20)
 
     # アップグレードボタンの配置設定
     margin_top = 40
@@ -412,14 +427,14 @@ def draw_single_upgrade_button(
         button.width + 60,
         button.height + 70,
     )
-    pygame.draw.rect(screen, (230, 225, 240), set_rect, border_radius=15)
-    pygame.draw.rect(screen, (130, 100, 170), set_rect, 3, border_radius=15)
+    pygame.draw.rect(screen, OFF_WHITE, set_rect, border_radius=15)
+    pygame.draw.rect(screen, SLATE_PURPLE, set_rect, 3, border_radius=15)
 
     # ボタンの色を決定
     if clicked_upgrade == index and current_time - click_time < animation_duration:
-        color = DARK_PURPLE
+        color = UPGRADE_BUTTON_CLICKED  # クリック時の色を薄いグレーに
     else:
-        color = PURPLE
+        color = UPGRADE_BUTTON_NORMAL  # 通常の色を薄いグレーに
 
     # お金が足りない場合は暗く表示
     if game_state.money < upgrade["cost"]:
@@ -510,7 +525,7 @@ def draw_buy_feedback(screen, game_state, position, yum_image, buttons):
     # 購入成功メッセージを表示
     purchased_count = buttons.get("purchased_count", 1)  # デフォルトは1
     success_text = button_font.render(
-        f"ゲームを{purchased_count}個購入したよ！", True, (0, 150, 0)
+        f"ゲームを{purchased_count}個購入したよ！", True, BUY_FEEDBACK_SUCCESS
     )
     text_rect = success_text.get_rect(
         midtop=(position[0], position[1] + yum_image.get_height() + 10)
@@ -533,7 +548,7 @@ def draw_work_feedback(screen, game_state, position, cold_sweat_image):
 
     earned = int(game_state.work_unit_price * efficiency_bonus)
     earned_text = button_font.render(
-        f"+{format_japanese_currency(earned)}", True, (0, 0, 150)
+        f"+{format_japanese_currency(earned)}", True, WORK_FEEDBACK_EARNED
     )
     text_rect = earned_text.get_rect(
         midtop=(position[0], position[1] + cold_sweat_image.get_height() + 10)
@@ -542,7 +557,7 @@ def draw_work_feedback(screen, game_state, position, cold_sweat_image):
 
     # 高額報酬時の追加メッセージ
     if earned >= 1000:
-        bonus_text = small_font.render("がんばったね！", True, (200, 0, 100))
+        bonus_text = small_font.render("がんばったね！", True, WORK_FEEDBACK_BONUS)
         bonus_rect = bonus_text.get_rect(midtop=(position[0], text_rect.bottom + 5))
         screen.blit(bonus_text, bonus_rect)
 
@@ -562,7 +577,7 @@ def draw_upgrade_feedback(screen, game_state, position, upgrade_index):
     else:
         message = f"{upgrade['name']}を購入したよ！"
 
-    upgrade_text = button_font.render(message, True, (150, 0, 150))
+    upgrade_text = button_font.render(message, True, UPGRADE_FEEDBACK_TEXT)  # グレーに
     upgrade_rect = upgrade_text.get_rect(midtop=(position[0], position[1] + 10))
     screen.blit(upgrade_text, upgrade_rect)
 
@@ -627,12 +642,14 @@ def draw_reset_button(screen, buttons):
 def draw_reset_feedback(screen, game_state):
     """リセット時のフィードバックを描画する関数"""
     # 画面中央に大きなメッセージを表示
-    reset_text = large_font.render("ゲームをリセットしました！", True, (200, 50, 50))
+    reset_text = large_font.render(
+        "ゲームをリセットしました！", True, RESET_FEEDBACK_MAIN
+    )
     text_rect = reset_text.get_rect(center=(screen.get_width() // 2, 200))
     screen.blit(reset_text, text_rect)
 
     # サブメッセージを表示
-    sub_text = button_font.render("新しい冒険の始まりだよ！", True, (100, 100, 100))
+    sub_text = button_font.render("新しい冒険の始まりだよ！", True, RESET_FEEDBACK_SUB)
     sub_rect = sub_text.get_rect(
         center=(screen.get_width() // 2, text_rect.bottom + 10)
     )
