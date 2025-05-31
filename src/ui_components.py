@@ -496,6 +496,15 @@ def draw_click_feedback(screen, game_state, buttons, yum_image, cold_sweat_image
     elif clicked_upgrade is not None:
         draw_upgrade_feedback(screen, game_state, fixed_img_pos, clicked_upgrade)
 
+    # リセットボタンがクリックされた場合
+    # リセットボタンがクリックされた場合
+    elif clicked_button == "reset":
+        reset_text = button_font.render(
+            "ゲームをリセットしました！", True, (200, 50, 50)
+        )
+        text_rect = reset_text.get_rect(center=(screen.get_width() // 2, 200))
+        screen.blit(reset_text, text_rect)
+
 
 def draw_buy_feedback(screen, game_state, position, yum_image):
     """購入時のフィードバックを描画する関数"""
@@ -579,3 +588,40 @@ def draw_buttons(screen, game_state, buttons, yum_image, cold_sweat_image):
 
     # クリック時のフィードバックを描画
     draw_click_feedback(screen, game_state, buttons, yum_image, cold_sweat_image)
+
+    # リセットボタンを描画
+    draw_reset_button(screen, buttons)
+
+
+def draw_reset_button(screen, buttons):
+    """リセットボタンを描画する関数"""
+    reset_button = buttons.get("reset_button")
+    clicked_button = buttons.get("clicked_button")
+    current_time = buttons.get("current_time")
+    click_time = buttons.get("click_time", 0)
+    animation_duration = 0.4
+    
+    # リセットボタンの色を定義（main.pyから移動）
+    RESET_COLOR = (200, 50, 50)
+    RESET_HOVER_COLOR = (220, 70, 70)
+
+    # マウスがボタン上にあるかチェック
+    mouse_pos = pygame.mouse.get_pos()
+    is_hover = reset_button.collidepoint(mouse_pos)
+
+    # ボタンの色を決定
+    if clicked_button == "reset" and current_time - click_time < animation_duration:
+        color = (150, 30, 30)  # クリック時の色
+    elif is_hover:
+        color = RESET_HOVER_COLOR  # ホバー時の色
+    else:
+        color = RESET_COLOR  # 通常の色
+
+    # ボタンを描画
+    pygame.draw.rect(screen, color, reset_button, border_radius=5)
+    pygame.draw.rect(screen, BLACK, reset_button, 2, border_radius=5)
+
+    # テキストを描画
+    reset_text = small_font.render("リセット", True, WHITE)
+    text_rect = reset_text.get_rect(center=reset_button.center)
+    screen.blit(reset_text, text_rect)

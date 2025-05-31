@@ -317,9 +317,9 @@ def main():
     # メインボタンの設定 - 中央に大きく配置
     work_button = pygame.Rect(0, 0, 300, 120)  # 位置は後で調整
     buy_button = pygame.Rect(0, 0, 300, 120)  # 位置は後で調整
-    
-    # リセットボタンの設定 - 左上に小さく配置
-    reset_button = pygame.Rect(20, 20, 100, 40)  # 左上に固定位置
+
+    # リセットボタンの設定 - 左上に小さく配置（ヘッダと被らないように位置調整）
+    reset_button = pygame.Rect(20, 230, 100, 40)  # 位置を下に移動
 
     # アップグレードボタンの設定 - 右側に縦に並べる
     upgrade_buttons = []
@@ -345,10 +345,8 @@ def main():
     clicked_button = None
     click_time = 0
     clicked_upgrade = None
-    
-    # リセットボタンの色
-    RESET_COLOR = (200, 50, 50)
-    RESET_HOVER_COLOR = (220, 70, 70)
+
+    # リセットボタンの色はui_components.pyで定義
 
     while True:
         current_time = pygame.time.get_ticks() / 1000  # 秒単位の現在時刻
@@ -388,7 +386,7 @@ def main():
                         if success:  # 購入に成功した場合のみ
                             clicked_upgrade = i
                             click_time = current_time
-                
+
                 # リセットボタンがクリックされた場合
                 if reset_button.collidepoint(mouse_pos):
                     # ゲームステータスをリセット
@@ -398,6 +396,7 @@ def main():
                     game_state.last_pc_income_time = current_time
                     game_state.last_early_access_return = current_time
                     clicked_button = "reset"
+                    clicked_upgrade = None  # クリックされたアップグレードをリセット
                     click_time = current_time
 
         # マウスカーソルの位置を取得
@@ -408,6 +407,7 @@ def main():
             work_button.collidepoint(mouse_pos)
             or buy_button.collidepoint(mouse_pos)
             or any(button.collidepoint(mouse_pos) for button in upgrade_buttons)
+            or reset_button.collidepoint(mouse_pos)
         ):
             if pygame.mouse.get_cursor() != hand_cursor:
                 pygame.mouse.set_cursor(hand_cursor)  # 手のカーソルに変更
@@ -423,6 +423,7 @@ def main():
             "work_button": work_button,
             "buy_button": buy_button,
             "upgrade_buttons": upgrade_buttons,
+            "reset_button": reset_button,
             "clicked_button": clicked_button,
             "clicked_upgrade": clicked_upgrade,
             "click_time": click_time,
