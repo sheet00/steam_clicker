@@ -20,6 +20,11 @@ large_font = pygame.font.Font("C:/Windows/Fonts/meiryo.ttc", 30)
 small_font = pygame.font.Font("C:/Windows/Fonts/meiryo.ttc", 18)
 
 
+def format_number(number):
+    """数値を3桁カンマ区切りでフォーマットする関数"""
+    return f"{number:,}"
+
+
 def draw_texts(screen, game_state):
     """テキストを描画する関数"""
     # 上段：情報パネルの背景（画面幅いっぱいに広げる）
@@ -35,29 +40,33 @@ def draw_texts(screen, game_state):
     )
 
     # 情報を横に並べて表示
-    # お金の表示
-    money_surface = font.render(f"お金: {game_state.money}円", True, BLACK)
+    # お金の表示（3桁カンマ区切り）
+    money_surface = font.render(
+        f"お金: {format_number(game_state.money)}円", True, BLACK
+    )
     screen.blit(money_surface, (40, 80))
 
-    # 積みゲーの表示
-    stock_surface = font.render(f"積みゲー: {game_state.stock}個", True, BLACK)
+    # 積みゲーの表示（3桁カンマ区切り）
+    stock_surface = font.render(
+        f"積みゲー: {format_number(game_state.stock)}個", True, BLACK
+    )
     stock_x = info_panel.centerx - stock_surface.get_width() // 2
     screen.blit(stock_surface, (stock_x, 80))
 
-    # 賃金のテキスト
-    text = f"賃金: {game_state.work_unit_price}円"
+    # 賃金のテキスト（3桁カンマ区切り）
+    text = f"賃金: {format_number(game_state.work_unit_price)}円"
     work_price_surface = button_font.render(text, True, BLACK)
     screen.blit(work_price_surface, (40, 130))
 
-    # 購入力のテキスト
-    text = f"購入力: {game_state.purchase_power}個/回"
+    # 購入力のテキスト（3桁カンマ区切り）
+    text = f"購入力: {format_number(game_state.purchase_power)}個/回"
     purchase_power_surface = button_font.render(text, True, BLACK)
     purchase_x = info_panel.centerx - purchase_power_surface.get_width() // 2
     screen.blit(purchase_power_surface, (purchase_x, 130))
 
-    # 自動収入のテキスト
+    # 自動収入のテキスト（3桁カンマ区切り）
     if game_state.auto_income > 0:
-        text = f"自動収入: {game_state.auto_income}円/秒"
+        text = f"自動収入: {format_number(game_state.auto_income)}円/秒"
         auto_income_surface = button_font.render(text, True, (0, 100, 0))
         auto_x = info_panel.right - auto_income_surface.get_width() - 40
         screen.blit(auto_income_surface, (auto_x, 80))
@@ -126,9 +135,9 @@ def draw_buttons(screen, game_state, buttons, yum_image, cold_sweat_image):
     screen.blit(work_text, work_text_rect)
     screen.blit(buy_text, buy_text_rect)
 
-    # ゲーム価格のテキスト
+    # ゲーム価格のテキスト（3桁カンマ区切り）
     game_price_surface = button_font.render(
-        f"価格: {game_state.game_price}円", True, BLACK
+        f"価格: {format_number(game_state.game_price)}円", True, BLACK
     )
     price_info_pos = (
         buy_button.centerx - game_price_surface.get_width() // 2,
@@ -199,7 +208,9 @@ def draw_buttons(screen, game_state, buttons, yum_image, cold_sweat_image):
 
         # ボタンテキスト
         name_text = button_font.render(upgrade["name"], True, WHITE)
-        cost_text = button_font.render(f"{upgrade['cost']}円", True, WHITE)
+        cost_text = button_font.render(
+            f"{format_number(upgrade['cost'])}円", True, WHITE
+        )
         count_text = button_font.render(f"所持: {upgrade['count']}", True, WHITE)
 
         # テキスト位置
@@ -224,6 +235,29 @@ def draw_buttons(screen, game_state, buttons, yum_image, cold_sweat_image):
         image_rect = yum_image.get_rect(midtop=fixed_img_pos)
         screen.blit(yum_image, image_rect)
 
+        # 購入成功メッセージを表示
+        success_text = button_font.render(
+            f"{format_number(game_state.purchase_power)}個ゲットだよ！",
+            True,
+            (0, 150, 0),
+        )
+        text_rect = success_text.get_rect(
+            midtop=(fixed_img_pos[0], fixed_img_pos[1] + yum_image.get_height() + 10)
+        )
+        screen.blit(success_text, text_rect)
+
     elif clicked_button == "work" and current_time - click_time < animation_duration:
         image_rect = cold_sweat_image.get_rect(midtop=fixed_img_pos)
         screen.blit(cold_sweat_image, image_rect)
+
+        # 労働で得た金額を表示
+        earned_text = button_font.render(
+            f"+{format_number(game_state.work_unit_price)}円", True, (0, 0, 150)
+        )
+        text_rect = earned_text.get_rect(
+            midtop=(
+                fixed_img_pos[0],
+                fixed_img_pos[1] + cold_sweat_image.get_height() + 10,
+            )
+        )
+        screen.blit(earned_text, text_rect)

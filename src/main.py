@@ -26,30 +26,43 @@ class GameState:
         self.work_unit_price = 100
         self.auto_work_unit_price = 0
         self.purchase_power = 1
-        self.game_price = 100  # ゲームの価格を定数として保持
+        self.game_price = 100
+
+        # 各アップグレードの効果量を変数として定義
+        self.work_unit_up_amount = 1000
+        self.purchase_power_up_amount = 10
+        self.auto_income_up_amount = 10000
+
+        # 各アップグレードの初期コストをselfプロパティとして定義
+        self.efficiency_tool_cost = 500
+        self.bulk_purchase_cost = 1000
+        self.auto_work_tool_cost = 2000
+
+        # 値上がり率
+        self.cost_upgrade_per = 1.1
 
         # アップグレードアイテムのリスト
         self.upgrades = [
             {
                 "name": "効率化ツール",
-                "cost": 500,
-                "effect": 50,  # 賃金アップ量
+                "cost": self.efficiency_tool_cost,
+                "effect": self.work_unit_up_amount,  # 賃金アップ量
                 "count": 0,
-                "description": "賃金+50円",
+                "description": f"賃金+{self.work_unit_up_amount}円",
             },
             {
                 "name": "バルクゲーム購入",
-                "cost": 1000,
-                "effect": 1,  # 購入力アップ量
+                "cost": self.bulk_purchase_cost,
+                "effect": self.purchase_power_up_amount,  # 購入力アップ量
                 "count": 0,
-                "description": "一度に購入するゲーム数+1",
+                "description": f"一度に購入するゲーム数+{self.purchase_power_up_amount}",
             },
             {
                 "name": "自動労働ツール",
-                "cost": 2000,
-                "effect": 10,  # 自動労働の秒間獲得額
+                "cost": self.auto_work_tool_cost,
+                "effect": self.auto_income_up_amount,  # 自動労働の秒間獲得額
                 "count": 0,
-                "description": "毎秒10円を自動獲得",
+                "description": f"毎秒{self.auto_income_up_amount}円を自動獲得",
             },
         ]
 
@@ -60,11 +73,14 @@ class GameState:
 
     def click_work(self):
         self.money += self.work_unit_price
+        return self.work_unit_price  # 増加した金額を返す
 
     def buy_game(self):
         if self.money >= self.game_price:
             self.money -= self.game_price
             self.stock += self.purchase_power
+            return True  # 購入成功
+        return False  # 購入失敗
 
     def buy_upgrade(self, index):
         upgrade = self.upgrades[index]
@@ -81,7 +97,7 @@ class GameState:
                 self.auto_income += upgrade["effect"]
 
             # 価格上昇（購入するたびに1.5倍に）
-            upgrade["cost"] = int(upgrade["cost"] * 1.5)
+            upgrade["cost"] = int(upgrade["cost"] * self.cost_upgrade_per)
 
     def update_auto_income(self, current_time):
         # 前回の更新から経過した時間（秒）
@@ -137,15 +153,16 @@ def main():
 
                 # 労働ボタンがクリックされた場合
                 if work_button.collidepoint(mouse_pos):
-                    game_state.click_work()
+                    earned = game_state.click_work()
                     clicked_button = "work"
                     click_time = current_time
 
                 # 購入ボタンがクリックされた場合
                 if buy_button.collidepoint(mouse_pos):
-                    game_state.buy_game()
-                    clicked_button = "buy"
-                    click_time = current_time
+                    success = game_state.buy_game()
+                    if success:
+                        clicked_button = "buy"
+                        click_time = current_time
 
                 # アップグレードボタンがクリックされた場合
                 for i, button in enumerate(upgrade_buttons):
@@ -182,6 +199,9 @@ def main():
             "click_time": click_time,
             "current_time": current_time,
         }
+        
+        # 画面の描画
+        screen.fill(WHITE)
         draw_texts(screen, game_state)
         draw_buttons(screen, game_state, buttons, yum_image, cold_sweat_image)
 
