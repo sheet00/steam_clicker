@@ -30,14 +30,13 @@ class GameState:
         self.work_unit_price = 100
         self.auto_work_unit_price = 0
         self.purchase_power = 1
-        self.game_price = 100
-        self.initial_game_price = 100  # 初期ゲーム価格を記録
+        self.game_price = 1000.0  # 小数で管理するために float に変更
 
         # 各アップグレードの効果量を変数として定義
         self.work_unit_up_percent = 100  # 賃金%アップ
-        self.purchase_power_up_percent = 0.1  # 購入力%アップ
-        self.auto_click_amount = 1  # 自動クリック回数（1秒あたり）
-        self.auto_purchase_amount = 1  # 購入自動化回数（3秒あたり）
+        self.purchase_power_up_percent = 100  # 購入力%アップ
+        self.auto_click_amount = 10  # 自動クリック回数（1秒あたり）
+        self.auto_purchase_amount = 10  # 購入自動化回数（3秒あたり）
 
         # 各アップグレードの初期コストをselfプロパティとして定義
         self.efficiency_tool_cost = 200
@@ -48,13 +47,14 @@ class GameState:
 
         # アーリーアクセス関連の設定
         self.early_access_level = 0  # アーリーアクセスのレベル
-        self.early_access_return_percent = 1  # 基本の資産増加率（%）- 小数点2桁で管理
+        self.early_access_return_percent = 100  # 基本の資産増加率（%）- 小数点2桁で管理
         self.early_access_interval = 5.0  # 収益が発生する間隔（秒）
         self.last_early_access_return = 0  # 最後に収益が発生した時間
         self.total_early_access_investment = 0  # アーリーアクセスへの総投資額
 
         # 値上がり率
-        self.cost_upgrade_per = 1.2
+        self.upgrade_cost_multiplier = 1.2  # アップグレードの値上がり率
+        self.game_cost_multiplier = 1  # ゲーム価格の値上がり率
 
         # 購入自動化の設定
         self.auto_purchases = 0
@@ -64,11 +64,10 @@ class GameState:
         # ゲーミングPCの設定
         self.gaming_pc_level = 0  # 初期レベルは0（未所持）
         self.gaming_pc_base_cost = 100  # 初期購入コスト
-        self.gaming_pc_upgrade_cost_multiplier = 1.5  # アップグレード時の価格上昇率
-        self.gaming_pc_income_per_game = 1  # 積みゲー1個あたりの毎秒収入（円）
+        self.gaming_pc_income_per_game = 100  # 積みゲー1個あたりの毎秒収入（円）
         self.gaming_pc_efficiency_bonus = 0.05  # レベルごとの労働効率ボーナス（5%）
         self.gaming_pc_interval_reduction = (
-            0.1  # レベルごとの購入自動化間隔短縮率（2%）
+            0.2  # レベルごとの購入自動化間隔短縮率（2%）
         )
         self.last_pc_income_time = 0  # 最後にPCからの収入を得た時間
         self.pc_income_interval = 1.0  # PCからの収入を得る間隔（秒）
@@ -137,13 +136,13 @@ class GameState:
         return earned  # 増加した金額を返す
 
     def buy_game(self):
-        if self.money >= self.game_price:
-            self.money -= self.game_price
+        if self.money >= int(self.game_price):  # 整数に変換して判定
+            self.money -= int(self.game_price)  # 整数に変換して支払い
             # 購入力が小数の場合、四捨五入してから積みゲーに加算
             self.stock += round(self.purchase_power)
 
-            # ゲーム価格を上昇させる
-            self.game_price = int(self.game_price * self.cost_upgrade_per)
+            # ゲーム価格を上昇させる（内部的には小数で計算）
+            self.game_price = self.game_price * self.game_cost_multiplier
 
             return True  # 購入成功
         return False  # 購入失敗
@@ -179,7 +178,7 @@ class GameState:
                 # 次のアップグレード価格を計算
                 upgrade["cost"] = int(
                     self.gaming_pc_base_cost
-                    * (self.gaming_pc_upgrade_cost_multiplier**self.gaming_pc_level)
+                    * (self.upgrade_cost_multiplier**self.gaming_pc_level)
                 )
 
                 # 説明文を更新
@@ -209,7 +208,7 @@ class GameState:
                 )
 
                 # 価格上昇
-                upgrade["cost"] = int(upgrade["cost"] * self.cost_upgrade_per)
+                upgrade["cost"] = int(upgrade["cost"] * self.upgrade_cost_multiplier)
                 upgrade["description"] = (
                     f"開発中のゲームに投資！投資額の{current_return_percent:.2f}%が還元 (Lv.{self.early_access_level})"
                 )
@@ -218,7 +217,7 @@ class GameState:
 
             # ゲーミングPCとアーリーアクセス以外のアップグレードは通常の価格上昇
             if index != 4 and index != 5:
-                upgrade["cost"] = int(upgrade["cost"] * self.cost_upgrade_per)
+                upgrade["cost"] = int(upgrade["cost"] * self.upgrade_cost_multiplier)
 
             return True  # 購入成功
         return False  # 購入失敗

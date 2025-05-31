@@ -134,7 +134,7 @@ def draw_basic_info(screen, game_state, info_panel):
     # お金の表示
     money_text = f"総資産: {format_japanese_currency(game_state.money)}"
     money_surface = font.render(money_text, True, BLACK)
-    screen.blit(money_surface, (40, 40))
+    screen.blit(money_surface, (60, 40))  # 左マージンを40から60に増やした
 
     # 積みゲーの表示
     stock_text = f"積みゲー: {format_number(game_state.stock)}個"
@@ -157,7 +157,7 @@ def draw_basic_info(screen, game_state, info_panel):
         text = f"賃金: {format_japanese_currency(game_state.work_unit_price)}"
 
     work_price_surface = button_font.render(text, True, BLACK)
-    screen.blit(work_price_surface, (40, 90))
+    screen.blit(work_price_surface, (60, 90))  # 左マージンを40から60に増やした
 
     # 購入力の表示
     power_text = format_purchase_power(game_state.purchase_power)
@@ -236,7 +236,7 @@ def draw_income_info(screen, game_state, info_panel):
         investment_surface = button_font.render(investment_text, True, (150, 100, 0))
 
         # 表示位置
-        early_access_x = 40
+        early_access_x = 60  # 左マージンを40から60に増やした
         early_access_y = 150
         screen.blit(early_access_surface, (early_access_x, early_access_y))
         screen.blit(investment_surface, (early_access_x, early_access_y + 30))
@@ -296,7 +296,7 @@ def draw_main_buttons(screen, game_state, buttons, current_time, click_time):
 
     # ゲーム価格の表示
     game_price_surface = button_font.render(
-        f"価格: {format_japanese_currency(game_state.game_price)}", True, BLACK
+        f"価格: {format_japanese_currency(int(game_state.game_price))}", True, BLACK
     )
     price_info_pos = (
         buy_button.centerx - game_price_surface.get_width() // 2,
