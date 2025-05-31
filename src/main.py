@@ -5,8 +5,8 @@ from pygame.locals import *
 from ui_components import draw_texts, draw_buttons
 
 # 画面設定
-WINDOW_WIDTH = 1200
-WINDOW_HEIGHT = 1000  # 画面の高さを調整
+WINDOW_WIDTH = 1800
+WINDOW_HEIGHT = 1280
 
 # 色の定義
 WHITE = (255, 255, 255)
@@ -36,7 +36,7 @@ class GameState:
         self.work_unit_up_percent = 10  # 賃金%アップ
         self.purchase_power_up_percent = 10  # 購入力%アップ
         self.auto_click_amount = 1  # 自動クリック回数（1秒あたり）
-        self.auto_purchase_amount = 1  # 自動購入回数（3秒あたり）
+        self.auto_purchase_amount = 1  # 購入自動化回数（3秒あたり）
 
         # 各アップグレードの初期コストをselfプロパティとして定義
         self.efficiency_tool_cost = 500
@@ -47,10 +47,10 @@ class GameState:
         # 値上がり率
         self.cost_upgrade_per = 1.1
 
-        # 自動購入の設定
+        # 購入自動化の設定
         self.auto_purchases = 0
         self.last_auto_purchase = 0
-        self.auto_purchase_interval = 3.0  # 自動購入の間隔（秒）
+        self.auto_purchase_interval = 3.0  # 購入自動化の間隔（秒）
 
         # ゲーミングPCの設定
         self.gaming_pc_level = 0  # 初期レベルは0（未所持）
@@ -58,13 +58,16 @@ class GameState:
         self.gaming_pc_upgrade_cost_multiplier = 1.5  # アップグレード時の価格上昇率
         self.gaming_pc_income_per_game = 1  # 積みゲー1個あたりの毎秒収入（円）
         self.gaming_pc_efficiency_bonus = 0.05  # レベルごとの労働効率ボーナス（5%）
+        self.gaming_pc_interval_reduction = (
+            0.3  # レベルごとの購入自動化間隔短縮率（2%）
+        )
         self.last_pc_income_time = 0  # 最後にPCからの収入を得た時間
         self.pc_income_interval = 1.0  # PCからの収入を得る間隔（秒）
 
         # アップグレードアイテムのリスト
         self.upgrades = [
             {
-                "name": "効率化ツール",
+                "name": "労働のDX化",
                 "cost": self.efficiency_tool_cost,
                 "effect": self.work_unit_up_percent,  # 賃金アップ率（%）
                 "count": 0,
@@ -78,16 +81,16 @@ class GameState:
                 "description": f"購入力+{self.purchase_power_up_percent}%アップ",
             },
             {
-                "name": "自動労働ツール",
+                "name": "労働自動化ツール",
                 "cost": self.auto_work_tool_cost,
                 "effect": self.auto_click_amount,  # 1秒あたりの自動クリック回数
                 "count": 0,
                 "description": f"毎秒{self.auto_click_amount}回、自動的に労働ボタンをクリック",
             },
             {
-                "name": "自動購入ツール",
+                "name": "購入自動化ツール",
                 "cost": self.auto_purchase_tool_cost,
-                "effect": self.auto_purchase_amount,  # 3秒あたりの自動購入回数
+                "effect": self.auto_purchase_amount,  # 3秒あたりの購入自動化回数
                 "count": 0,
                 "description": f"{self.auto_purchase_interval}秒ごとに{self.auto_purchase_amount}回、自動的にゲームを購入",
             },
@@ -137,9 +140,9 @@ class GameState:
                 self.work_unit_price += increase_amount
             elif index == 1:  # バルクゲーム購入
                 self.purchase_power += upgrade["effect"]
-            elif index == 2:  # 自動労働ツール
+            elif index == 2:  # 労働自動化ツール
                 self.auto_clicks += upgrade["effect"]
-            elif index == 3:  # 自動購入ツール
+            elif index == 3:  # 購入自動化ツール
                 self.auto_purchases += upgrade["effect"]
             elif index == 4:  # ゲーミングPC
                 if self.gaming_pc_level == 0:
@@ -165,12 +168,12 @@ class GameState:
                 )
 
                 # レベルに応じた特別ボーナスの説明を追加
-                special_bonus = ""
-                if self.gaming_pc_level >= 10:
-                    special_bonus = "、自動購入間隔-10%"
+                reduction_percent = int(
+                    self.gaming_pc_level * self.gaming_pc_interval_reduction * 100
+                )
 
                 upgrade["description"] = (
-                    f"Lv.{self.gaming_pc_level}: 積みゲー×{income_per_sec}円/秒、労働効率+{efficiency_bonus}%{special_bonus}"
+                    f"Lv.{self.gaming_pc_level}: 積みゲー×{income_per_sec}円/秒、労働効率+{efficiency_bonus}%、購入自動化間隔-{reduction_percent}%"
                 )
 
                 return True  # 購入成功
@@ -191,16 +194,20 @@ class GameState:
                 self.click_work()
             self.last_auto_update = current_time
 
-        # 自動購入の処理
+        # 購入自動化の処理
         elapsed_purchase = current_time - self.last_auto_purchase
 
-        # ゲーミングPCのレベルが10以上なら自動購入間隔を短縮
+        # ゲーミングPCのレベルに応じて購入自動化間隔を短縮
+        # レベル1ごとにself.gaming_pc_interval_reduction%短縮（上限なし）
         auto_purchase_interval = self.auto_purchase_interval
-        if self.gaming_pc_level >= 10:
-            auto_purchase_interval *= 0.9  # 10%短縮
+        if self.gaming_pc_level > 0:
+            reduction_percent = self.gaming_pc_level * self.gaming_pc_interval_reduction
+            auto_purchase_interval *= max(
+                0.01, 1.0 - reduction_percent
+            )  # 最低でも0.01秒は確保
 
         if elapsed_purchase >= auto_purchase_interval:  # 設定した間隔以上経過していたら
-            # 自動購入回数分だけゲームを購入
+            # 購入自動化回数分だけゲームを購入
             for _ in range(self.auto_purchases):
                 self.buy_game()  # 購入できない場合は何も起きない
             self.last_auto_purchase = current_time
@@ -210,16 +217,15 @@ class GameState:
             elapsed_pc_income = current_time - self.last_pc_income_time
             if elapsed_pc_income >= self.pc_income_interval:  # 1秒ごとに収入
                 # 積みゲー数 × PCレベル × 収入係数で1秒あたりの収入を計算
-                income_per_sec = self.stock * self.gaming_pc_level * self.gaming_pc_income_per_game
+                income_per_sec = (
+                    self.stock * self.gaming_pc_level * self.gaming_pc_income_per_game
+                )
                 self.money += int(income_per_sec)
                 self.last_pc_income_time = current_time
 
 
 def main():
 
-    # 画面設定
-    WINDOW_WIDTH = 1200
-    WINDOW_HEIGHT = 1000
     screen = pygame.display.set_mode((WINDOW_WIDTH, WINDOW_HEIGHT))
     pygame.display.set_caption("Steamクリッカー")
 
@@ -235,7 +241,7 @@ def main():
     clock = pygame.time.Clock()
     game_state = GameState()
     game_state.last_auto_update = pygame.time.get_ticks() / 1000  # 初期化
-    game_state.last_auto_purchase = pygame.time.get_ticks() / 1000  # 自動購入の初期化
+    game_state.last_auto_purchase = pygame.time.get_ticks() / 1000  # 購入自動化の初期化
     game_state.last_pc_income_time = (
         pygame.time.get_ticks() / 1000
     )  # PCからの収入の初期化
