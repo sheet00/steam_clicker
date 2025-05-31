@@ -45,6 +45,15 @@ class GameState:
         self.auto_purchase_tool_cost = 200
         self.early_access_cost = 300  # アーリーアクセスの初期コスト
 
+        # アーリーアクセス関連の設定
+        self.early_access_level = 0  # アーリーアクセスのレベル
+        self.early_access_return_percent = 2  # 基本の資産増加率（%）
+        self.early_access_interval = 5.0  # 収益が発生する間隔（秒）
+        self.last_early_access_return = 0  # 最後に収益が発生した時間
+        self.total_early_access_investment = 0  # アーリーアクセスへの総投資額
+        self.early_access_interval = 1.0  # 収益が発生する間隔（秒）
+        self.last_early_access_return = 0  # 最後に収益が発生した時間
+
         # 値上がり率
         self.cost_upgrade_per = 1.2
 
@@ -105,9 +114,9 @@ class GameState:
             {
                 "name": "アーリーアクセス",
                 "cost": self.early_access_cost,
-                "effect": 1,  # 効果の初期値
+                "effect": self.early_access_return_percent,  # 基本の資産増加率（%）
                 "count": 0,
-                "description": f"開発中のゲームに投資！リスクとリターンを楽しもう",
+                "description": f"開発中のゲームに投資！資産が{self.early_access_return_percent}%増加",
             },
         ]
 
@@ -185,11 +194,21 @@ class GameState:
                     f"Lv.{self.gaming_pc_level}: 積みゲー×{income_per_sec}円/秒、労働効率+{efficiency_bonus}%、購入自動化間隔-{reduction_percent}%"
                 )
             elif index == 5:  # アーリーアクセス
-                # アーリーアクセスの効果（将来実装）
-                # 現時点では単純に価格上昇のみ
+                # アーリーアクセスのレベルを上げる
+                self.early_access_level += 1
+                
+                # 投資額を記録
+                self.total_early_access_investment += upgrade["cost"]
+
+                # 収益率を更新（レベルごとに基本収益率が加算される）
+                current_return_percent = (
+                    self.early_access_level * self.early_access_return_percent
+                )
+
+                # 価格上昇
                 upgrade["cost"] = int(upgrade["cost"] * self.cost_upgrade_per)
                 upgrade["description"] = (
-                    f"開発中のゲームに投資！リスクとリターンを楽しもう (Lv.{upgrade['count']})"
+                    f"開発中のゲームに投資！投資額の{current_return_percent}%が還元 (Lv.{self.early_access_level})"
                 )
 
                 return True  # 購入成功
@@ -239,6 +258,24 @@ class GameState:
                 self.money += int(income_per_sec)
                 self.last_pc_income_time = current_time
 
+        # アーリーアクセスからの収入処理
+        if self.early_access_level > 0:
+            elapsed_early_access = current_time - self.last_early_access_return
+            if (
+                elapsed_early_access >= self.early_access_interval
+            ):  # 設定した間隔ごとに収入
+                # 投資額に対して収益率を適用
+                return_percent = (
+                    self.early_access_level * self.early_access_return_percent
+                )
+                return_amount = int(self.total_early_access_investment * (return_percent / 100))
+
+                # 収益を加算
+                if return_amount > 0:
+                    self.money += return_amount
+
+                self.last_early_access_return = current_time
+
 
 def main():
 
@@ -262,6 +299,9 @@ def main():
     game_state.last_pc_income_time = (
         pygame.time.get_ticks() / 1000
     )  # PCからの収入の初期化
+    game_state.last_early_access_return = (
+        pygame.time.get_ticks() / 1000
+    )  # アーリーアクセスの初期化
 
     # デフォルトカーソルと手のカーソルを設定
     default_cursor = pygame.SYSTEM_CURSOR_ARROW

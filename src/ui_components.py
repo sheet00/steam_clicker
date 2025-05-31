@@ -203,6 +203,24 @@ def draw_texts(screen, game_state):
         else:
             pc_income_x = info_panel.right - pc_income_surface.get_width() - 40
             screen.blit(pc_income_surface, (pc_income_x, 90))  # 位置を調整
+            
+    # アーリーアクセスからの収益を表示（レベルが1以上の場合のみ）
+    if game_state.early_access_level > 0:
+        return_percent = game_state.early_access_level * game_state.early_access_return_percent
+        return_amount = int(game_state.total_early_access_investment * (return_percent / 100))
+        
+        text = f"アーリーアクセス: +{format_japanese_currency(return_amount)}/{game_state.early_access_interval}秒 ({return_percent}%)"
+        early_access_surface = button_font.render(text, True, (150, 100, 0))
+        
+        # 投資額も表示
+        investment_text = f"総投資額: {format_japanese_currency(game_state.total_early_access_investment)}"
+        investment_surface = button_font.render(investment_text, True, (150, 100, 0))
+        
+        # 表示位置を決定（左下に表示）
+        early_access_x = 40
+        early_access_y = 150
+        screen.blit(early_access_surface, (early_access_x, early_access_y))
+        screen.blit(investment_surface, (early_access_x, early_access_y + 30))
 
 
 def draw_buttons(screen, game_state, buttons, yum_image, cold_sweat_image):
