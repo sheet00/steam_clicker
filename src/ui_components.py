@@ -14,10 +14,10 @@ DARK_PURPLE = (100, 30, 150)
 # フォント設定
 pygame.init()
 font = pygame.font.Font("C:/Windows/Fonts/meiryo.ttc", 36)
-button_font = pygame.font.Font("C:/Windows/Fonts/meiryo.ttc", 20)
+button_font = pygame.font.Font("C:/Windows/Fonts/meiryo.ttc", 20)  # サイズを元に戻す
 title_font = pygame.font.Font("C:/Windows/Fonts/meiryo.ttc", 35)
 large_font = pygame.font.Font("C:/Windows/Fonts/meiryo.ttc", 30)
-small_font = pygame.font.Font("C:/Windows/Fonts/meiryo.ttc", 18)
+small_font = pygame.font.Font("C:/Windows/Fonts/meiryo.ttc", 18)  # サイズを元に戻す
 
 
 def format_number(number):
@@ -29,7 +29,7 @@ def draw_texts(screen, game_state):
     """テキストを描画する関数"""
     # 上段：情報パネルの背景（画面幅いっぱいに広げる）
     screen_width = screen.get_width()
-    info_panel = pygame.Rect(20, 20, screen_width - 40, 150)
+    info_panel = pygame.Rect(20, 20, screen_width - 40, 200)
     pygame.draw.rect(screen, LIGHT_GRAY, info_panel, border_radius=15)
     pygame.draw.rect(screen, BLACK, info_panel, 2, border_radius=15)  # 枠線
 
@@ -41,7 +41,7 @@ def draw_texts(screen, game_state):
 
     # 情報パネルを3つのセクションに分ける
     panel_width = info_panel.width - 40  # 左右のマージン20pxずつ
-    
+
     # お金の表示（3桁カンマ区切り）- 専用の大きなエリアを確保
     money_text = f"お金: {format_number(game_state.money)}円"
     money_surface = font.render(money_text, True, BLACK)
@@ -49,13 +49,13 @@ def draw_texts(screen, game_state):
     money_bg = pygame.Rect(40, 80, panel_width // 2, 40)
     # お金は左寄せで表示
     screen.blit(money_surface, (40, 80))
-    
+
     # 積みゲーの表示（3桁カンマ区切り）- 右上
     stock_text = f"積みゲー: {format_number(game_state.stock)}個"
     stock_surface = font.render(stock_text, True, BLACK)
     stock_x = info_panel.right - stock_surface.get_width() - 40
     screen.blit(stock_surface, (stock_x, 80))
-    
+
     # 賃金のテキスト（3桁カンマ区切り）- 左下
     text = f"賃金: {format_number(game_state.work_unit_price)}円"
     work_price_surface = button_font.render(text, True, BLACK)
@@ -66,13 +66,26 @@ def draw_texts(screen, game_state):
     purchase_power_surface = button_font.render(text, True, BLACK)
     purchase_x = info_panel.centerx - purchase_power_surface.get_width() // 2
     screen.blit(purchase_power_surface, (purchase_x, 130))
-    
+
     # 自動クリックのテキスト（3桁カンマ区切り）- 右下
     if game_state.auto_clicks > 0:
         text = f"自動クリック: {format_number(game_state.auto_clicks)}回/秒"
         auto_clicks_surface = button_font.render(text, True, (0, 100, 0))
         auto_x = info_panel.right - auto_clicks_surface.get_width() - 40
         screen.blit(auto_clicks_surface, (auto_x, 130))
+
+    # 自動購入のテキスト - 右下の自動クリックの下に表示
+    if game_state.auto_purchases > 0:
+        text = f"自動購入: {format_number(game_state.auto_purchases)}回/{game_state.auto_purchase_interval}秒"
+        auto_purchase_surface = button_font.render(text, True, (100, 0, 100))
+        if game_state.auto_clicks > 0:
+            # 自動クリックがある場合はその下に表示
+            auto_purchase_x = info_panel.right - auto_purchase_surface.get_width() - 40
+            screen.blit(auto_purchase_surface, (auto_purchase_x, 155))
+        else:
+            # 自動クリックがない場合は同じ位置に表示
+            auto_purchase_x = info_panel.right - auto_purchase_surface.get_width() - 40
+            screen.blit(auto_purchase_surface, (auto_purchase_x, 130))
 
 
 def draw_buttons(screen, game_state, buttons, yum_image, cold_sweat_image):
@@ -90,7 +103,7 @@ def draw_buttons(screen, game_state, buttons, yum_image, cold_sweat_image):
     upgrade_buttons = buttons.get("upgrade_buttons", [])
 
     # 中段左：ボタンパネル
-    button_panel = pygame.Rect(20, 190, screen_width // 2 - 40, screen_height - 210)
+    button_panel = pygame.Rect(20, 230, screen_width // 2 - 40, screen_height - 250)
     pygame.draw.rect(screen, (230, 240, 250), button_panel, border_radius=15)
     pygame.draw.rect(screen, (100, 120, 150), button_panel, 2, border_radius=15)  # 枠線
 
@@ -98,19 +111,22 @@ def draw_buttons(screen, game_state, buttons, yum_image, cold_sweat_image):
     button_title = title_font.render("アクション", True, BLACK)
     screen.blit(
         button_title,
-        (button_panel.centerx - button_title.get_width() // 2, button_panel.top + 20),
+        (
+            button_panel.centerx - button_title.get_width() // 2,
+            button_panel.top + 30,
+        ),  # タイトル位置を調整
     )
 
     # ボタンの位置を中央に配置
     work_button.width = 300
     work_button.height = 120
     work_button.centerx = button_panel.centerx
-    work_button.top = button_panel.top + 80
+    work_button.top = button_panel.top + 100  # 位置を調整
 
     buy_button.width = 300
     buy_button.height = 120
     buy_button.centerx = button_panel.centerx
-    buy_button.top = work_button.bottom + 50
+    buy_button.top = work_button.bottom + 80  # 間隔を広げる
 
     # 労働ボタンの色
     if clicked_button == "work" and current_time - click_time < animation_duration:
@@ -150,7 +166,7 @@ def draw_buttons(screen, game_state, buttons, yum_image, cold_sweat_image):
 
     # 中段右：アップグレードセクションの背景パネル
     upgrade_panel = pygame.Rect(
-        screen_width // 2 + 20, 190, screen_width // 2 - 40, screen_height - 210
+        screen_width // 2 + 20, 230, screen_width // 2 - 40, screen_height - 250
     )
     pygame.draw.rect(
         screen, (245, 240, 250), upgrade_panel, border_radius=20
@@ -163,22 +179,22 @@ def draw_buttons(screen, game_state, buttons, yum_image, cold_sweat_image):
         upgrade_title,
         (
             upgrade_panel.centerx - upgrade_title.get_width() // 2,
-            upgrade_panel.top + 20,
+            upgrade_panel.top + 30,  # タイトル位置を調整
         ),
     )
 
     # アップグレードボタンの位置を調整
-    button_spacing = 100  # ボタン間の間隔をさらに増やす（60から100に）
+    button_spacing = 50  # ボタン間の間隔を適切に設定
     total_buttons_height = (
-        len(upgrade_buttons) * 150 + (len(upgrade_buttons) - 1) * button_spacing
+        len(upgrade_buttons) * 90 + (len(upgrade_buttons) - 1) * button_spacing
     )
-    start_y = upgrade_panel.top + 80
+    start_y = upgrade_panel.top + 80  # 開始位置を調整
 
     # アップグレードボタンの描画
     for i, button in enumerate(upgrade_buttons):
         # ボタンの位置を設定
         button.width = 300
-        button.height = 150
+        button.height = 100  # 高さを適切に調整
         button.centerx = upgrade_panel.centerx
         button.top = start_y + i * (button.height + button_spacing)
 
@@ -189,7 +205,7 @@ def draw_buttons(screen, game_state, buttons, yum_image, cold_sweat_image):
             button.left - 10,
             button.top - 10,
             button.width + 20,
-            button.height + 50,  # 説明文のスペースも含める
+            button.height + 35,  # 説明文のスペースを適切に調整
         )
         pygame.draw.rect(
             screen, (230, 225, 240), set_rect, border_radius=10
@@ -211,13 +227,19 @@ def draw_buttons(screen, game_state, buttons, yum_image, cold_sweat_image):
 
         # ボタンテキスト
         name_text = button_font.render(upgrade["name"], True, WHITE)
-        cost_text = button_font.render(f"{format_number(upgrade['cost'])}円", True, WHITE)
+        cost_text = button_font.render(
+            f"{format_number(upgrade['cost'])}円", True, WHITE
+        )
         count_text = button_font.render(f"所持: {upgrade['count']}", True, WHITE)
 
         # テキスト位置
-        name_rect = name_text.get_rect(midtop=(button.centerx, button.top + 15))
+        name_rect = name_text.get_rect(
+            midtop=(button.centerx, button.top + 10)
+        )  # 上部の余白を調整
         cost_rect = cost_text.get_rect(center=(button.centerx, button.centery))
-        count_rect = count_text.get_rect(midbottom=(button.centerx, button.bottom - 15))
+        count_rect = count_text.get_rect(
+            midbottom=(button.centerx, button.bottom - 10)
+        )  # 下部の余白を調整
 
         # テキスト描画
         screen.blit(name_text, name_rect)
@@ -226,12 +248,16 @@ def draw_buttons(screen, game_state, buttons, yum_image, cold_sweat_image):
 
         # 説明テキスト
         desc_text = small_font.render(upgrade["description"], True, BLACK)
-        desc_rect = desc_text.get_rect(midtop=(button.centerx, button.bottom + 15))
+        desc_rect = desc_text.get_rect(
+            midtop=(button.centerx, button.bottom + 5)
+        )  # 間隔を適切に調整
         screen.blit(desc_text, desc_rect)
 
     # クリックされたボタンに応じて画像を表示（固定位置：購入ボタンの下）
     fixed_img_pos = (buy_button.centerx, buy_button.bottom + 50)
 
+    # 労働または購入ボタンがクリックされた場合のみ画像を表示
+    # print(clicked_button)
     if clicked_button == "buy" and current_time - click_time < animation_duration:
         image_rect = yum_image.get_rect(midtop=fixed_img_pos)
         screen.blit(yum_image, image_rect)
@@ -262,9 +288,22 @@ def draw_buttons(screen, game_state, buttons, yum_image, cold_sweat_image):
             )
         )
         screen.blit(earned_text, text_rect)
-        
+
         # 効果音を鳴らす代わりに視覚的なフィードバック
         if game_state.work_unit_price >= 1000:
             bonus_text = small_font.render("がんばったね！", True, (200, 0, 100))
-            bonus_rect = bonus_text.get_rect(midtop=(fixed_img_pos[0], text_rect.bottom + 5))
+            bonus_rect = bonus_text.get_rect(
+                midtop=(fixed_img_pos[0], text_rect.bottom + 5)
+            )
             screen.blit(bonus_text, bonus_rect)
+
+    # アップグレードボタンがクリックされた場合は、購入成功メッセージを表示
+    elif clicked_upgrade is not None and current_time - click_time < animation_duration:
+        upgrade = game_state.upgrades[clicked_upgrade]
+        upgrade_text = button_font.render(
+            f"{upgrade['name']}を購入したよ！", True, (150, 0, 150)
+        )
+        upgrade_rect = upgrade_text.get_rect(
+            midtop=(fixed_img_pos[0], fixed_img_pos[1] + 10)
+        )
+        screen.blit(upgrade_text, upgrade_rect)
