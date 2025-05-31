@@ -31,6 +31,7 @@ class GameState:
         self.auto_work_unit_price = 0
         self.purchase_power = 1
         self.game_price = 100
+        self.initial_game_price = 100  # 初期ゲーム価格を記録
 
         # 各アップグレードの効果量を変数として定義
         self.work_unit_up_percent = 10  # 賃金%アップ
@@ -116,7 +117,7 @@ class GameState:
                 "cost": self.early_access_cost,
                 "effect": self.early_access_return_percent,  # 基本の資産増加率（%）
                 "count": 0,
-                "description": f"開発中のゲームに投資！資産が{self.early_access_return_percent}%増加",
+                "description": f"開発中のゲームに投資！投資額の{self.early_access_return_percent}%が還元",
             },
         ]
 
@@ -142,6 +143,10 @@ class GameState:
             self.money -= self.game_price
             # 購入力が小数の場合、四捨五入してから積みゲーに加算
             self.stock += round(self.purchase_power)
+            
+            # ゲーム価格を上昇させる
+            self.game_price = int(self.game_price * self.cost_upgrade_per)
+            
             return True  # 購入成功
         return False  # 購入失敗
 
