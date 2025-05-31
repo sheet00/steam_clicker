@@ -34,7 +34,7 @@ class GameState:
         self.initial_game_price = 100  # 初期ゲーム価格を記録
 
         # 各アップグレードの効果量を変数として定義
-        self.work_unit_up_percent = 10  # 賃金%アップ
+        self.work_unit_up_percent = 100  # 賃金%アップ
         self.purchase_power_up_percent = 0.1  # 購入力%アップ
         self.auto_click_amount = 1  # 自動クリック回数（1秒あたり）
         self.auto_purchase_amount = 1  # 購入自動化回数（3秒あたり）
@@ -44,16 +44,14 @@ class GameState:
         self.bulk_purchase_cost = 200
         self.auto_work_tool_cost = 200
         self.auto_purchase_tool_cost = 200
-        self.early_access_cost = 300  # アーリーアクセスの初期コスト
+        self.early_access_cost = 300
 
         # アーリーアクセス関連の設定
         self.early_access_level = 0  # アーリーアクセスのレベル
-        self.early_access_return_percent = 2  # 基本の資産増加率（%）
+        self.early_access_return_percent = 1  # 基本の資産増加率（%）- 小数点2桁で管理
         self.early_access_interval = 5.0  # 収益が発生する間隔（秒）
         self.last_early_access_return = 0  # 最後に収益が発生した時間
         self.total_early_access_investment = 0  # アーリーアクセスへの総投資額
-        self.early_access_interval = 1.0  # 収益が発生する間隔（秒）
-        self.last_early_access_return = 0  # 最後に収益が発生した時間
 
         # 値上がり率
         self.cost_upgrade_per = 1.2
@@ -143,10 +141,10 @@ class GameState:
             self.money -= self.game_price
             # 購入力が小数の場合、四捨五入してから積みゲーに加算
             self.stock += round(self.purchase_power)
-            
+
             # ゲーム価格を上昇させる
             self.game_price = int(self.game_price * self.cost_upgrade_per)
-            
+
             return True  # 購入成功
         return False  # 購入失敗
 
@@ -201,19 +199,19 @@ class GameState:
             elif index == 5:  # アーリーアクセス
                 # アーリーアクセスのレベルを上げる
                 self.early_access_level += 1
-                
+
                 # 投資額を記録
                 self.total_early_access_investment += upgrade["cost"]
 
-                # 収益率を更新（レベルごとに基本収益率が加算される）
-                current_return_percent = (
-                    self.early_access_level * self.early_access_return_percent
+                # 収益率を更新（レベルごとに基本収益率が加算される）- 小数点2桁で丸める
+                current_return_percent = round(
+                    self.early_access_level * self.early_access_return_percent, 2
                 )
 
                 # 価格上昇
                 upgrade["cost"] = int(upgrade["cost"] * self.cost_upgrade_per)
                 upgrade["description"] = (
-                    f"開発中のゲームに投資！投資額の{current_return_percent}%が還元 (Lv.{self.early_access_level})"
+                    f"開発中のゲームに投資！投資額の{current_return_percent:.2f}%が還元 (Lv.{self.early_access_level})"
                 )
 
                 return True  # 購入成功
@@ -269,11 +267,13 @@ class GameState:
             if (
                 elapsed_early_access >= self.early_access_interval
             ):  # 設定した間隔ごとに収入
-                # 投資額に対して収益率を適用
-                return_percent = (
-                    self.early_access_level * self.early_access_return_percent
+                # 投資額に対して収益率を適用 - 小数点2桁で丸める
+                return_percent = round(
+                    self.early_access_level * self.early_access_return_percent, 2
                 )
-                return_amount = int(self.total_early_access_investment * (return_percent / 100))
+                return_amount = int(
+                    self.total_early_access_investment * (return_percent / 100)
+                )
 
                 # 収益を加算
                 if return_amount > 0:

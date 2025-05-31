@@ -206,10 +206,10 @@ def draw_texts(screen, game_state):
             
     # アーリーアクセスからの収益を表示（レベルが1以上の場合のみ）
     if game_state.early_access_level > 0:
-        return_percent = game_state.early_access_level * game_state.early_access_return_percent
+        return_percent = round(game_state.early_access_level * game_state.early_access_return_percent, 2)
         return_amount = int(game_state.total_early_access_investment * (return_percent / 100))
         
-        text = f"アーリーアクセス: +{format_japanese_currency(return_amount)}/{game_state.early_access_interval}秒 ({return_percent}%)"
+        text = f"アーリーアクセス: +{format_japanese_currency(return_amount)}/{game_state.early_access_interval}秒 ({return_percent:.2f}%)"
         early_access_surface = button_font.render(text, True, (150, 100, 0))
         
         # 投資額も表示
