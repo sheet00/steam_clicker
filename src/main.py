@@ -1,6 +1,7 @@
 import pygame
 import os
 import sys
+import random  # ランダム要素のためにrandomをインポート
 from pygame.locals import *
 from ui_components import draw_texts, draw_buttons
 
@@ -30,13 +31,13 @@ class GameState:
         self.work_unit_price = 100
         self.auto_work_unit_price = 0
         self.purchase_power = 1
-        self.game_price = 1000.0  # 小数で管理するために float に変更
+        self.game_price = 100.0  # 小数で管理するために float に変更
 
         # 各アップグレードの効果量を変数として定義
-        self.work_unit_up_percent = 100  # 賃金%アップ
-        self.purchase_power_up_percent = 100  # 購入力%アップ
-        self.auto_click_amount = 10  # 自動クリック回数（1秒あたり）
-        self.auto_purchase_amount = 10  # 購入自動化回数（3秒あたり）
+        self.work_unit_up_percent = 1000  # 賃金%アップ
+        self.purchase_power_up_percent = 1000  # 購入力%アップ
+        self.auto_click_amount = 100  # 自動クリック回数（1秒あたり）
+        self.auto_purchase_amount = 100  # 購入自動化回数（3秒あたり）
 
         # 各アップグレードの初期コストをselfプロパティとして定義
         self.efficiency_tool_cost = 200
@@ -47,14 +48,18 @@ class GameState:
 
         # アーリーアクセス関連の設定
         self.early_access_level = 0  # アーリーアクセスのレベル
-        self.early_access_return_percent = 100  # 基本の資産増加率（%）- 小数点2桁で管理
-        self.early_access_interval = 5.0  # 収益が発生する間隔（秒）
+        self.early_access_return_percent = (
+            1000  # 基本の資産増加率（%）- 小数点2桁で管理
+        )
+        self.early_access_interval = 1.0  # 収益が発生する間隔（秒）
         self.last_early_access_return = 0  # 最後に収益が発生した時間
         self.total_early_access_investment = 0  # アーリーアクセスへの総投資額
+        self.last_early_access_result = 0  # 最後のアーリーアクセス収益結果
+        self.last_early_access_is_negative = False  # 最後の結果がマイナスだったか
 
         # 値上がり率
         self.upgrade_cost_multiplier = 1.2  # アップグレードの値上がり率
-        self.game_cost_multiplier = 1  # ゲーム価格の値上がり率
+        self.game_cost_multiplier = 1.0  # ゲーム価格の値上がり率
 
         # 購入自動化の設定
         self.auto_purchases = 0
@@ -210,7 +215,7 @@ class GameState:
                 # 価格上昇
                 upgrade["cost"] = int(upgrade["cost"] * self.upgrade_cost_multiplier)
                 upgrade["description"] = (
-                    f"開発中のゲームに投資！投資額の{current_return_percent:.2f}%が還元 (Lv.{self.early_access_level})"
+                    f"開発中のゲームに投資！投資額の±{current_return_percent:.2f}%が還元 (Lv.{self.early_access_level})"
                 )
 
                 return True  # 購入成功
@@ -270,15 +275,26 @@ class GameState:
                 return_percent = round(
                     self.early_access_level * self.early_access_return_percent, 2
                 )
+
+                # 1/2の確率でマイナスになる
+                is_negative = random.random() < 0.5
+                if is_negative:
+                    return_percent = -return_percent  # マイナスにする
+
+                # 収益額を計算
                 return_amount = int(
                     self.total_early_access_investment * (return_percent / 100)
                 )
 
-                # 収益を加算
-                if return_amount > 0:
-                    self.money += return_amount
+                # 収益を加算（マイナスの場合は減算）
+                self.money += return_amount
 
+                # 最後の収益時間を更新
                 self.last_early_access_return = current_time
+
+                # 今回の結果を記録（UI表示用）
+                self.last_early_access_result = return_amount
+                self.last_early_access_is_negative = is_negative
 
 
 def main():
