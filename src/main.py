@@ -33,9 +33,9 @@ class GameState:
             {
                 "name": "効率化ツール",
                 "cost": 500,
-                "effect": 50,  # 労働単価アップ量
+                "effect": 50,  # 賃金アップ量
                 "count": 0,
-                "description": "労働単価+50円",
+                "description": "賃金+50円",
             },
             {
                 "name": "バルクゲーム購入",
@@ -100,13 +100,13 @@ def main():
     pygame.display.set_caption("Steamクリッカー")
 
     # メインボタンの設定 - 中央に大きく配置
-    work_button = pygame.Rect(WINDOW_WIDTH // 2 - 150, 300, 300, 120)
-    buy_button = pygame.Rect(WINDOW_WIDTH // 2 - 150, 450, 300, 120)
+    work_button = pygame.Rect(0, 0, 300, 120)  # 位置は後で調整
+    buy_button = pygame.Rect(0, 0, 300, 120)  # 位置は後で調整
 
     # アップグレードボタンの設定 - 右側に縦に並べる
     upgrade_buttons = []
     for i in range(3):  # 3つのアップグレード
-        upgrade_buttons.append(pygame.Rect(WINDOW_WIDTH - 350, 200 + i * 180, 300, 150))
+        upgrade_buttons.append(pygame.Rect(0, 0, 300, 150))  # 位置は後で調整
 
     clock = pygame.time.Clock()
     game_state = GameState()
