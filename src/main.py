@@ -9,15 +9,6 @@ WHITE = (255, 255, 255)
 BLACK = (0, 0, 0)
 
 pygame.init()
-# OSに応じてフォントを設定
-try:
-    # Windowsの場合
-    font = pygame.font.Font("C:/Windows/Fonts/meiryo.ttc", 36)
-    button_font = pygame.font.Font("C:/Windows/Fonts/meiryo.ttc", 24)
-except:
-    # Windowsでない場合はデフォルトフォントを使用
-    font = pygame.font.SysFont(None, 36)
-    button_font = pygame.font.SysFont(None, 24)
 
 # 画像の読み込み
 # スクリプトと同じディレクトリのパスを取得
@@ -108,14 +99,14 @@ def main():
     screen = pygame.display.set_mode((WINDOW_WIDTH, WINDOW_HEIGHT))
     pygame.display.set_caption("Steamクリッカー")
 
-    # ボタンの設定
-    work_button = pygame.Rect(300, 200, 200, 80)
-    buy_button = pygame.Rect(300, 300, 200, 80)
+    # メインボタンの設定 - 中央に大きく配置
+    work_button = pygame.Rect(WINDOW_WIDTH // 2 - 150, 300, 300, 120)
+    buy_button = pygame.Rect(WINDOW_WIDTH // 2 - 150, 450, 300, 120)
 
-    # アップグレードボタンの設定
+    # アップグレードボタンの設定 - 右側に縦に並べる
     upgrade_buttons = []
     for i in range(3):  # 3つのアップグレード
-        upgrade_buttons.append(pygame.Rect(550, 150 + i * 100, 220, 80))
+        upgrade_buttons.append(pygame.Rect(WINDOW_WIDTH - 350, 200 + i * 180, 300, 150))
 
     clock = pygame.time.Clock()
     game_state = GameState()
@@ -191,12 +182,8 @@ def main():
             "click_time": click_time,
             "current_time": current_time,
         }
-
-        # 修正: フォントと画像を引数として渡す
-        draw_texts(screen, game_state, font, button_font)
-        draw_buttons(
-            screen, game_state, buttons, button_font, yum_image, cold_sweat_image
-        )
+        draw_texts(screen, game_state)
+        draw_buttons(screen, game_state, buttons, yum_image, cold_sweat_image)
 
         pygame.display.update()
         clock.tick(60)
