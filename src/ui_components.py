@@ -35,6 +35,7 @@ icon_files = [
     "03_ai_character01_smile.png",
     "04_shopping_cart.png",
     "05_computer_game_gaming_computer.png",
+    "06_game_gamen.png",
 ]
 
 # アイコンを読み込む
@@ -59,6 +60,40 @@ def format_number(number):
     return f"{number:,}"
 
 
+def format_japanese_currency(number):
+    """数値を日本円の単位（万、億、兆、京、垓、𥝱/秭、穣、溝、澗、正、載、極）でフォーマットする関数"""
+    if number < 10000:  # 1万未満
+        return f"{number:,}円"
+
+    units = [
+        (10**4, "万"),
+        (10**8, "億"),
+        (10**12, "兆"),
+        (10**16, "京"),
+        (10**20, "垓"),
+        (10**24, "𥝱"),  # または秭
+        (10**28, "穣"),
+        (10**32, "溝"),
+        (10**36, "澗"),
+        (10**40, "正"),
+        (10**44, "載"),
+        (10**48, "極"),
+    ]
+
+    for i in range(len(units) - 1, -1, -1):
+        value, unit_name = units[i]
+        if number >= value:
+            formatted_number = number / value
+            if formatted_number == int(formatted_number):
+                return f"{int(formatted_number):,}{unit_name}円"
+            else:
+                return f"{formatted_number:.1f}{unit_name}円".replace(
+                    f".0{unit_name}", unit_name
+                )
+
+    return f"{number:,}円"  # Fallback for very small numbers, though handled by the initial if
+
+
 def draw_texts(screen, game_state):
     """テキストを描画する関数"""
     # 上段：情報パネルの背景（画面幅いっぱいに広げる）
@@ -72,8 +107,8 @@ def draw_texts(screen, game_state):
     # 情報パネルを3つのセクションに分ける
     panel_width = info_panel.width - 40  # 左右のマージン20pxずつ
 
-    # お金の表示（3桁カンマ区切り）- 専用の大きなエリアを確保
-    money_text = f"総資産: {format_number(game_state.money)}円"
+    # お金の表示（日本円単位）- 専用の大きなエリアを確保
+    money_text = f"総資産: {format_japanese_currency(game_state.money)}"
     money_surface = font.render(money_text, True, BLACK)
     # お金表示用の背景を作成
     money_bg = pygame.Rect(40, 40, panel_width // 2, 40)  # 位置を上に移動
@@ -86,7 +121,7 @@ def draw_texts(screen, game_state):
     stock_x = info_panel.right - stock_surface.get_width() - 40
     screen.blit(stock_surface, (stock_x, 40))  # 位置を上に移動
 
-    # 賃金のテキスト（3桁カンマ区切り）- 左下
+    # 賃金のテキスト（日本円単位）- 左下
     # ゲーミングPCのボーナスを表示
     efficiency_bonus = 1.0
     if game_state.gaming_pc_level > 0:
@@ -97,9 +132,9 @@ def draw_texts(screen, game_state):
     actual_wage = int(game_state.work_unit_price * efficiency_bonus)
 
     if game_state.gaming_pc_level > 0:
-        text = f"賃金: {format_number(actual_wage)}円 (ボーナス: +{int((efficiency_bonus-1)*100)}%)"
+        text = f"賃金: {format_japanese_currency(actual_wage)} (ボーナス: +{int((efficiency_bonus-1)*100)}%)"
     else:
-        text = f"賃金: {format_number(game_state.work_unit_price)}円"
+        text = f"賃金: {format_japanese_currency(game_state.work_unit_price)}"
 
     work_price_surface = button_font.render(text, True, BLACK)
     screen.blit(work_price_surface, (40, 90))  # 位置を調整
@@ -153,7 +188,7 @@ def draw_texts(screen, game_state):
             * game_state.gaming_pc_level
             * game_state.gaming_pc_income_per_game
         )
-        text = f"配信収益: {format_number(income_per_sec)}円/秒"
+        text = f"配信収益: {format_japanese_currency(income_per_sec)}/秒"
         pc_income_surface = button_font.render(text, True, (0, 0, 150))
 
         # 自動購入と自動クリックの両方がある場合は、さらに下に表示
@@ -230,9 +265,9 @@ def draw_buttons(screen, game_state, buttons, yum_image, cold_sweat_image):
     screen.blit(work_text, work_text_rect)
     screen.blit(buy_text, buy_text_rect)
 
-    # ゲーム価格のテキスト（3桁カンマ区切り）
+    # ゲーム価格のテキスト（日本円単位）
     game_price_surface = button_font.render(
-        f"価格: {format_number(game_state.game_price)}円", True, BLACK
+        f"価格: {format_japanese_currency(game_state.game_price)}", True, BLACK
     )
     price_info_pos = (
         buy_button.centerx - game_price_surface.get_width() // 2,
@@ -256,7 +291,7 @@ def draw_buttons(screen, game_state, buttons, yum_image, cold_sweat_image):
 
     # アップグレードボタンの位置を調整 - 固定マージンで配置
     margin_top = 40  # 上部マージン（調整用変数）
-    button_spacing = 100  # ボタン間の固定間隔
+    button_spacing = 70  # ボタン間の固定間隔
     start_y = upgrade_panel.top + margin_top  # 開始位置
 
     # アップグレードボタンの描画
@@ -301,7 +336,7 @@ def draw_buttons(screen, game_state, buttons, yum_image, cold_sweat_image):
         # ボタンテキスト
         name_text = upgrade_font.render(upgrade["name"], True, WHITE)
         cost_text = upgrade_font.render(
-            f"{format_number(upgrade['cost'])}円", True, WHITE
+            f"{format_japanese_currency(upgrade['cost'])}", True, WHITE
         )
 
         # ゲーミングPCの場合はレベルを表示、それ以外は所持数を表示
@@ -339,23 +374,6 @@ def draw_buttons(screen, game_state, buttons, yum_image, cold_sweat_image):
         count_rect = count_text.get_rect(
             midbottom=(button.centerx + text_offset, button.bottom - 10)
         )
-
-        # ボタンテキスト
-        name_text = upgrade_font.render(upgrade["name"], True, WHITE)
-        cost_text = upgrade_font.render(
-            f"{format_number(upgrade['cost'])}円", True, WHITE
-        )
-
-        # ゲーミングPCの場合はレベルを表示、それ以外は所持数を表示
-        if i == 4:  # ゲーミングPC
-            if game_state.gaming_pc_level > 0:
-                count_text = upgrade_font.render(
-                    f"Lv.{game_state.gaming_pc_level}", True, WHITE
-                )
-            else:
-                count_text = upgrade_font.render("未所持", True, WHITE)
-        else:
-            count_text = upgrade_font.render(f"所持: {upgrade['count']}", True, WHITE)
 
         # テキスト位置
         name_rect = name_text.get_rect(
@@ -417,7 +435,7 @@ def draw_buttons(screen, game_state, buttons, yum_image, cold_sweat_image):
         earned = int(game_state.work_unit_price * efficiency_bonus)
 
         earned_text = button_font.render(
-            f"+{format_number(earned)}円", True, (0, 0, 150)
+            f"+{format_japanese_currency(earned)}", True, (0, 0, 150)
         )
         text_rect = earned_text.get_rect(
             midtop=(

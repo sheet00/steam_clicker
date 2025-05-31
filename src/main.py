@@ -43,6 +43,7 @@ class GameState:
         self.bulk_purchase_cost = 200
         self.auto_work_tool_cost = 200
         self.auto_purchase_tool_cost = 200
+        self.early_access_cost = 300  # アーリーアクセスの初期コスト
 
         # 値上がり率
         self.cost_upgrade_per = 1.2
@@ -100,6 +101,13 @@ class GameState:
                 "effect": self.gaming_pc_level,  # 現在のPCレベル
                 "count": 0,
                 "description": f"積みゲーをプレイして配信！ レベルアップで収益UP",
+            },
+            {
+                "name": "アーリーアクセス",
+                "cost": self.early_access_cost,
+                "effect": 1,  # 効果の初期値
+                "count": 0,
+                "description": f"開発中のゲームに投資！リスクとリターンを楽しもう",
             },
         ]
 
@@ -176,11 +184,18 @@ class GameState:
                 upgrade["description"] = (
                     f"Lv.{self.gaming_pc_level}: 積みゲー×{income_per_sec}円/秒、労働効率+{efficiency_bonus}%、購入自動化間隔-{reduction_percent}%"
                 )
+            elif index == 5:  # アーリーアクセス
+                # アーリーアクセスの効果（将来実装）
+                # 現時点では単純に価格上昇のみ
+                upgrade["cost"] = int(upgrade["cost"] * self.cost_upgrade_per)
+                upgrade["description"] = (
+                    f"開発中のゲームに投資！リスクとリターンを楽しもう (Lv.{upgrade['count']})"
+                )
 
                 return True  # 購入成功
 
-            # ゲーミングPC以外のアップグレードは通常の価格上昇
-            if index != 4:
+            # ゲーミングPCとアーリーアクセス以外のアップグレードは通常の価格上昇
+            if index != 4 and index != 5:
                 upgrade["cost"] = int(upgrade["cost"] * self.cost_upgrade_per)
 
             return True  # 購入成功
@@ -236,7 +251,8 @@ def main():
 
     # アップグレードボタンの設定 - 右側に縦に並べる
     upgrade_buttons = []
-    for i in range(5):  # 5つのアップグレード（ゲーミングPC追加）
+    game_state = GameState()
+    for i in range(len(game_state.upgrades)):  # アップグレード数に応じて動的に生成
         upgrade_buttons.append(pygame.Rect(0, 0, 300, 150))  # 位置は後で調整
 
     clock = pygame.time.Clock()
