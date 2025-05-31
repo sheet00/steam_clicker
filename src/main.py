@@ -4,6 +4,7 @@ import sys
 import random  # ランダム要素のためにrandomをインポート
 from pygame.locals import *
 from ui_components import draw_texts, draw_buttons
+from config_loader import load_env_file
 
 # 画面設定
 WINDOW_WIDTH = 1800
@@ -26,30 +27,36 @@ cold_sweat_image = pygame.image.load(cold_sweat_path)
 
 class GameState:
     def __init__(self):
-        self.money = 0
-        self.stock = 0
-        self.work_unit_price = 100
+        # .envファイルから設定を読み込む
+        current_dir = os.path.dirname(os.path.abspath(__file__))
+        env_path = os.path.join(current_dir, '.env')
+        config = load_env_file(env_path)
+        
+        # 基本設定
+        self.money = config.get('INITIAL_MONEY', 0)
+        self.stock = config.get('INITIAL_STOCK', 0)
+        self.work_unit_price = config.get('WORK_UNIT_PRICE', 100)
         self.auto_work_unit_price = 0
-        self.purchase_count = 1  # 購入力から購入数に変更
-        self.game_price = 100.0  # 小数で管理するために float に変更
+        self.purchase_count = config.get('PURCHASE_COUNT', 1)  # 購入力から購入数に変更
+        self.game_price = config.get('GAME_PRICE', 100.0)  # 小数で管理するために float に変更
 
         # 各アップグレードの効果量を変数として定義
-        self.work_unit_up_percent = 1000  # 賃金%アップ
-        self.purchase_power_up_percent = 200  # 購入数%アップ
-        self.auto_click_amount = 100  # 自動クリック回数（1秒あたり）
-        self.auto_purchase_amount = 100  # 購入自動化回数（3秒あたり）
+        self.work_unit_up_percent = config.get('WORK_UNIT_UP_PERCENT', 1000)  # 賃金%アップ
+        self.purchase_power_up_percent = config.get('PURCHASE_POWER_UP_PERCENT', 200)  # 購入数%アップ
+        self.auto_click_amount = config.get('AUTO_CLICK_AMOUNT', 100)  # 自動クリック回数（1秒あたり）
+        self.auto_purchase_amount = config.get('AUTO_PURCHASE_AMOUNT', 100)  # 購入自動化回数（3秒あたり）
 
         # 各アップグレードの初期コストをselfプロパティとして定義
-        self.efficiency_tool_cost = 200
-        self.bulk_purchase_cost = 200
-        self.auto_work_tool_cost = 200
-        self.auto_purchase_tool_cost = 200
-        self.early_access_cost = 300
+        self.efficiency_tool_cost = config.get('EFFICIENCY_TOOL_COST', 200)
+        self.bulk_purchase_cost = config.get('BULK_PURCHASE_COST', 200)
+        self.auto_work_tool_cost = config.get('AUTO_WORK_TOOL_COST', 200)
+        self.auto_purchase_tool_cost = config.get('AUTO_PURCHASE_TOOL_COST', 200)
+        self.early_access_cost = config.get('EARLY_ACCESS_COST', 300)
 
         # アーリーアクセス関連の設定
         self.early_access_level = 0  # アーリーアクセスのレベル
-        self.early_access_return_percent = 100  # 基本の資産増加率（%）- 小数点2桁で管理
-        self.early_access_interval = 1.0  # 収益が発生する間隔（秒）
+        self.early_access_return_percent = config.get('EARLY_ACCESS_RETURN_PERCENT', 100)  # 基本の資産増加率（%）
+        self.early_access_interval = config.get('EARLY_ACCESS_INTERVAL', 1.0)  # 収益が発生する間隔（秒）
         self.last_early_access_return = 0  # 最後に収益が発生した時間
         self.total_early_access_investment = 0  # アーリーアクセスへの総投資額
         self.last_early_access_result = 0  # 最後のアーリーアクセス収益結果
@@ -58,22 +65,20 @@ class GameState:
         self.last_early_access_game_bonus = 0.0  # ゲーム数によるボーナス収益率
 
         # 値上がり率
-        self.upgrade_cost_multiplier = 1.2  # アップグレードの値上がり率
-        self.game_cost_multiplier = 1.0  # ゲーム価格の値上がり率
+        self.upgrade_cost_multiplier = config.get('UPGRADE_COST_MULTIPLIER', 1.2)  # アップグレードの値上がり率
+        self.game_cost_multiplier = config.get('GAME_COST_MULTIPLIER', 1.0)  # ゲーム価格の値上がり率
 
         # 購入自動化の設定
         self.auto_purchases = 0
         self.last_auto_purchase = 0
-        self.auto_purchase_interval = 3.0  # 購入自動化の間隔（秒）
+        self.auto_purchase_interval = config.get('AUTO_PURCHASE_INTERVAL', 3.0)  # 購入自動化の間隔（秒）
 
         # ゲーミングPCの設定
         self.gaming_pc_level = 0  # 初期レベルは0（未所持）
-        self.gaming_pc_base_cost = 100  # 初期購入コスト
-        self.gaming_pc_income_per_game = 100  # 積みゲー1個あたりの毎秒収入（円）
-        self.gaming_pc_efficiency_bonus = 0.05  # レベルごとの労働効率ボーナス（5%）
-        self.gaming_pc_interval_reduction = (
-            0.2  # レベルごとの購入自動化間隔短縮率（2%）
-        )
+        self.gaming_pc_base_cost = config.get('GAMING_PC_BASE_COST', 100)  # 初期購入コスト
+        self.gaming_pc_income_per_game = config.get('GAMING_PC_INCOME_PER_GAME', 100)  # 積みゲー1個あたりの毎秒収入（円）
+        self.gaming_pc_efficiency_bonus = config.get('GAMING_PC_EFFICIENCY_BONUS', 0.05)  # レベルごとの労働効率ボーナス
+        self.gaming_pc_interval_reduction = config.get('GAMING_PC_INTERVAL_REDUCTION', 0.2)  # レベルごとの購入自動化間隔短縮率
         self.last_pc_income_time = 0  # 最後にPCからの収入を得た時間
         self.pc_income_interval = 1.0  # PCからの収入を得る間隔（秒）
 
@@ -409,8 +414,8 @@ def main():
 
                 # リセットボタンがクリックされた場合
                 if reset_button.collidepoint(mouse_pos):
-                    # ゲームステータスをリセット
-                    game_state = GameState()
+                    # .envファイルを再読み込みしてゲームステータスをリセット
+                    game_state = GameState()  # これで.envファイルから最新の設定を読み込む
                     game_state.last_auto_update = current_time
                     game_state.last_auto_purchase = current_time
                     game_state.last_pc_income_time = current_time

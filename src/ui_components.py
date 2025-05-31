@@ -497,13 +497,8 @@ def draw_click_feedback(screen, game_state, buttons, yum_image, cold_sweat_image
         draw_upgrade_feedback(screen, game_state, fixed_img_pos, clicked_upgrade)
 
     # リセットボタンがクリックされた場合
-    # リセットボタンがクリックされた場合
     elif clicked_button == "reset":
-        reset_text = button_font.render(
-            "ゲームをリセットしました！", True, (200, 50, 50)
-        )
-        text_rect = reset_text.get_rect(center=(screen.get_width() // 2, 200))
-        screen.blit(reset_text, text_rect)
+        draw_reset_feedback(screen, game_state)
 
 
 def draw_buy_feedback(screen, game_state, position, yum_image, buttons):
@@ -514,7 +509,9 @@ def draw_buy_feedback(screen, game_state, position, yum_image, buttons):
 
     # 購入成功メッセージを表示
     purchased_count = buttons.get("purchased_count", 1)  # デフォルトは1
-    success_text = button_font.render(f"ゲームを{purchased_count}個購入したよ！", True, (0, 150, 0))
+    success_text = button_font.render(
+        f"ゲームを{purchased_count}個購入したよ！", True, (0, 150, 0)
+    )
     text_rect = success_text.get_rect(
         midtop=(position[0], position[1] + yum_image.get_height() + 10)
     )
@@ -600,7 +597,7 @@ def draw_reset_button(screen, buttons):
     current_time = buttons.get("current_time")
     click_time = buttons.get("click_time", 0)
     animation_duration = 0.4
-    
+
     # リセットボタンの色を定義（main.pyから移動）
     RESET_COLOR = (200, 50, 50)
     RESET_HOVER_COLOR = (220, 70, 70)
@@ -625,3 +622,25 @@ def draw_reset_button(screen, buttons):
     reset_text = small_font.render("リセット", True, WHITE)
     text_rect = reset_text.get_rect(center=reset_button.center)
     screen.blit(reset_text, text_rect)
+
+
+def draw_reset_feedback(screen, game_state):
+    """リセット時のフィードバックを描画する関数"""
+    # 画面中央に大きなメッセージを表示
+    reset_text = large_font.render("ゲームをリセットしました！", True, (200, 50, 50))
+    text_rect = reset_text.get_rect(center=(screen.get_width() // 2, 200))
+    screen.blit(reset_text, text_rect)
+
+    # サブメッセージを表示
+    sub_text = button_font.render("新しい冒険の始まりだよ！", True, (100, 100, 100))
+    sub_rect = sub_text.get_rect(
+        center=(screen.get_width() // 2, text_rect.bottom + 10)
+    )
+    screen.blit(sub_text, sub_rect)
+
+    # 画面中央に大きな円形エフェクトを描画
+    radius = 100
+    center_x = screen.get_width() // 2
+    center_y = screen.get_height() // 2
+    pygame.draw.circle(screen, (255, 200, 200), (center_x, center_y), radius, 5)
+    pygame.draw.circle(screen, (255, 150, 150), (center_x, center_y), radius - 20, 5)
