@@ -171,7 +171,7 @@ def draw_automation_info(screen, game_state, info_panel):
     """自動化関連の情報（自動クリック、自動購入）を表示する関数"""
     # 自動クリックの表示
     if game_state.auto_clicks > 0:
-        text = f"自動クリック: {format_number(game_state.auto_clicks)}回/秒"
+        text = f"自動クリック: {game_state.auto_clicks:.2f}回/秒"
         auto_clicks_surface = button_font.render(text, True, (0, 100, 0))
         auto_x = info_panel.right - auto_clicks_surface.get_width() - 40
         screen.blit(auto_clicks_surface, (auto_x, 90))
@@ -186,7 +186,7 @@ def draw_automation_info(screen, game_state, info_panel):
             )
             auto_purchase_interval *= max(0.01, 1.0 - reduction_percent)
 
-        text = f"自動購入: {format_number(game_state.auto_purchases)}回/{auto_purchase_interval:.2f}秒"
+        text = f"自動購入: {game_state.auto_purchases:.2f}回/{auto_purchase_interval:.2f}秒"
         auto_purchase_surface = button_font.render(text, True, (100, 0, 100))
 
         # 表示位置の決定
