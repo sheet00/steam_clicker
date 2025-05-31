@@ -1,4 +1,5 @@
 import pygame
+import os
 import sys
 from pygame.locals import *
 
@@ -17,6 +18,29 @@ font = pygame.font.Font("C:/Windows/Fonts/meiryo.ttc", 36)  # メイリオ
 button_font = pygame.font.Font("C:/Windows/Fonts/meiryo.ttc", 24)  # ボタン用フォント
 
 
+# 画像の読み込み
+# スクリプトと同じディレクトリのパスを取得
+current_dir = os.path.dirname(os.path.abspath(__file__))
+yum_path = os.path.join(current_dir, "yum.png")
+cold_sweat_path = os.path.join(current_dir, "cold_sweat.png")
+yum_image = pygame.image.load(yum_path)
+cold_sweat_image = pygame.image.load(cold_sweat_path)
+
+
+class GameState:
+    def __init__(self):
+        self.money = 0
+        self.stock = 0
+        self.work_unit_price = 100
+        self.auto_work_unit_price = 0
+        self.purchase_power = 1
+        self.game_price = 100  # ゲームの価格を定数として保持
+
+    def click_work(self):
+        self.money += self.work_unit_price
+
+
+# GameStateクラスの重複を削除し、1つに統合しました
 class GameState:
     def __init__(self):
         self.money = 0
@@ -35,10 +59,7 @@ class GameState:
             self.stock += self.purchase_power
 
 
-def draw_texts(
-    screen,
-    game_state,
-):
+def draw_texts(screen, game_state):
     """テキストを描画する関数"""
     # 画面左上
     # お金の表示
@@ -49,10 +70,21 @@ def draw_texts(
     stock_surface = font.render(f"積みゲー: {game_state.stock}個", True, BLACK)
     screen.blit(stock_surface, (10, 50))
 
+    # 労働単価のテキスト（背景付きで見やすく表示）
+    text = f"労働時給: {game_state.work_unit_price}円"
+    work_price_surface = button_font.render(text, True, BLACK)
+    # テキストの背景用の矩形を作成（少し余白をつける）
+    bg_rect = work_price_surface.get_rect(topleft=(10, 120))
+    bg_rect.inflate_ip(10, 6)  # 横に10px、縦に6px余白を追加
+    # 薄いグレーの背景を描画
+    pygame.draw.rect(screen, (220, 220, 220), bg_rect)
+    # テキストを描画
+    screen.blit(work_price_surface, (15, 123))  # 背景の内側に少しずらして描画
+
 
 def draw_buttons(screen, game_state, buttons):
     # クリックアニメーションの持続時間（秒）
-    animation_duration = 0.2
+    animation_duration = 0.4
 
     clicked_button = buttons.get("clicked_button")
     current_time = buttons.get("current_time")
@@ -62,15 +94,15 @@ def draw_buttons(screen, game_state, buttons):
 
     # 労働ボタンの色
     if clicked_button == "work" and current_time - click_time < animation_duration:
-        work_color = DARK_GREEN
+        work_color = DARK_BLUE
     else:
-        work_color = GREEN
+        work_color = BLUE
 
     # 購入ボタンの色
     if clicked_button == "buy" and current_time - click_time < animation_duration:
-        buy_color = DARK_BLUE
+        buy_color = DARK_GREEN
     else:
-        buy_color = BLUE
+        buy_color = GREEN
 
     # 角丸の矩形を描画する
     pygame.draw.rect(screen, work_color, work_button, border_radius=10)
@@ -78,7 +110,7 @@ def draw_buttons(screen, game_state, buttons):
 
     # ボタンテキストを描画
     work_text = button_font.render("労働", True, WHITE)
-    buy_text = button_font.render("購入", True, WHITE)
+    buy_text = button_font.render("ゲーム購入", True, WHITE)
 
     work_text_rect = work_text.get_rect(center=work_button.center)
     buy_text_rect = buy_text.get_rect(center=buy_button.center)
@@ -86,15 +118,16 @@ def draw_buttons(screen, game_state, buttons):
     screen.blit(work_text, work_text_rect)
     screen.blit(buy_text, buy_text_rect)
 
-    # 労働単価のテキスト
-    work_price_surface = button_font.render(
-        f"{game_state.work_unit_price}円", True, BLACK
-    )
-    work_info_pos = (
-        work_button.right + 10,
-        work_button.centery - work_price_surface.get_height() // 2,
-    )
-    screen.blit(work_price_surface, work_info_pos)
+    # クリックされたボタンに応じて画像を中央に表示
+
+    img_pos = (buy_button.centerx, buy_button.bottom + 10)
+    if clicked_button == "buy" and current_time - click_time < animation_duration:
+        image_rect = yum_image.get_rect(midtop=img_pos)
+        screen.blit(yum_image, image_rect)
+
+    elif clicked_button == "work" and current_time - click_time < animation_duration:
+        image_rect = cold_sweat_image.get_rect(midtop=img_pos)
+        screen.blit(cold_sweat_image, image_rect)
 
     # ゲーム価格のテキスト
     game_price_surface = button_font.render(f"{game_state.game_price}円", True, BLACK)

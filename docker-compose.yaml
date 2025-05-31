@@ -1,0 +1,7 @@
+version: "3.8"
+services:
+  ubuntu_app:
+    image: ubuntu:latest
+    tty: true
+    volumes:
+      - ./src:/src
