@@ -17,7 +17,8 @@ font = pygame.font.Font("C:/Windows/Fonts/meiryo.ttc", 36)
 button_font = pygame.font.Font("C:/Windows/Fonts/meiryo.ttc", 20)  # サイズを元に戻す
 title_font = pygame.font.Font("C:/Windows/Fonts/meiryo.ttc", 35)
 large_font = pygame.font.Font("C:/Windows/Fonts/meiryo.ttc", 30)
-small_font = pygame.font.Font("C:/Windows/Fonts/meiryo.ttc", 18)  # サイズを元に戻す
+small_font = pygame.font.Font("C:/Windows/Fonts/meiryo.ttc", 16)  # アップグレード説明用に小さく
+upgrade_font = pygame.font.Font("C:/Windows/Fonts/meiryo.ttc", 18)  # アップグレード名と価格用
 
 
 def format_number(number):
@@ -29,15 +30,11 @@ def draw_texts(screen, game_state):
     """テキストを描画する関数"""
     # 上段：情報パネルの背景（画面幅いっぱいに広げる）
     screen_width = screen.get_width()
-    info_panel = pygame.Rect(20, 20, screen_width - 40, 150)  # 高さを小さく
+    info_panel = pygame.Rect(20, 20, screen_width - 40, 180)  # 高さを180pxに増やす
     pygame.draw.rect(screen, LIGHT_GRAY, info_panel, border_radius=15)
     pygame.draw.rect(screen, BLACK, info_panel, 3, border_radius=15)  # 枠線を太く
 
-    # タイトル
-    title_surface = title_font.render("Steamクリッカー", True, BLACK)
-    screen.blit(
-        title_surface, (info_panel.centerx - title_surface.get_width() // 2, 30)
-    )
+    # タイトル削除してスペース確保
 
     # 情報パネルを3つのセクションに分ける
     panel_width = info_panel.width - 40  # 左右のマージン20pxずつ
@@ -46,46 +43,81 @@ def draw_texts(screen, game_state):
     money_text = f"お金: {format_number(game_state.money)}円"
     money_surface = font.render(money_text, True, BLACK)
     # お金表示用の背景を作成
-    money_bg = pygame.Rect(40, 80, panel_width // 2, 40)
+    money_bg = pygame.Rect(40, 40, panel_width // 2, 40)  # 位置を上に移動
     # お金は左寄せで表示
-    screen.blit(money_surface, (40, 80))
+    screen.blit(money_surface, (40, 40))  # 位置を上に移動
 
     # 積みゲーの表示（3桁カンマ区切り）- 右上
     stock_text = f"積みゲー: {format_number(game_state.stock)}個"
     stock_surface = font.render(stock_text, True, BLACK)
     stock_x = info_panel.right - stock_surface.get_width() - 40
-    screen.blit(stock_surface, (stock_x, 80))
+    screen.blit(stock_surface, (stock_x, 40))  # 位置を上に移動
 
     # 賃金のテキスト（3桁カンマ区切り）- 左下
-    text = f"賃金: {format_number(game_state.work_unit_price)}円"
+    # ゲーミングPCのボーナスを表示
+    efficiency_bonus = 1.0
+    if game_state.gaming_pc_level > 0:
+        efficiency_bonus = 1.0 + (game_state.gaming_pc_level * game_state.gaming_pc_efficiency_bonus)
+    
+    actual_wage = int(game_state.work_unit_price * efficiency_bonus)
+    
+    if game_state.gaming_pc_level > 0:
+        text = f"賃金: {format_number(actual_wage)}円 (ボーナス: +{int((efficiency_bonus-1)*100)}%)"
+    else:
+        text = f"賃金: {format_number(game_state.work_unit_price)}円"
+        
     work_price_surface = button_font.render(text, True, BLACK)
-    screen.blit(work_price_surface, (40, 130))
+    screen.blit(work_price_surface, (40, 90))  # 位置を調整
 
     # 購入力のテキスト（3桁カンマ区切り）- 中央下
     text = f"購入力: {format_number(game_state.purchase_power)}個/回"
     purchase_power_surface = button_font.render(text, True, BLACK)
     purchase_x = info_panel.centerx - purchase_power_surface.get_width() // 2
-    screen.blit(purchase_power_surface, (purchase_x, 130))
+    screen.blit(purchase_power_surface, (purchase_x, 90))  # 位置を調整
 
     # 自動クリックのテキスト（3桁カンマ区切り）- 右下
     if game_state.auto_clicks > 0:
         text = f"自動クリック: {format_number(game_state.auto_clicks)}回/秒"
         auto_clicks_surface = button_font.render(text, True, (0, 100, 0))
         auto_x = info_panel.right - auto_clicks_surface.get_width() - 40
-        screen.blit(auto_clicks_surface, (auto_x, 130))
+        screen.blit(auto_clicks_surface, (auto_x, 90))  # 位置を調整
 
     # 自動購入のテキスト - 右下の自動クリックの下に表示
     if game_state.auto_purchases > 0:
-        text = f"自動購入: {format_number(game_state.auto_purchases)}回/{game_state.auto_purchase_interval}秒"
+        # ゲーミングPCのレベルが10以上なら自動購入間隔を短縮
+        auto_purchase_interval = game_state.auto_purchase_interval
+        if game_state.gaming_pc_level >= 10:
+            auto_purchase_interval *= 0.9  # 10%短縮
+            
+        text = f"自動購入: {format_number(game_state.auto_purchases)}回/{auto_purchase_interval:.1f}秒"
         auto_purchase_surface = button_font.render(text, True, (100, 0, 100))
         if game_state.auto_clicks > 0:
             # 自動クリックがある場合はその下に表示
             auto_purchase_x = info_panel.right - auto_purchase_surface.get_width() - 40
-            screen.blit(auto_purchase_surface, (auto_purchase_x, 155))
+            screen.blit(auto_purchase_surface, (auto_purchase_x, 120))  # 位置を調整
         else:
             # 自動クリックがない場合は同じ位置に表示
             auto_purchase_x = info_panel.right - auto_purchase_surface.get_width() - 40
-            screen.blit(auto_purchase_surface, (auto_purchase_x, 130))
+            screen.blit(auto_purchase_surface, (auto_purchase_x, 90))  # 位置を調整
+            
+    # ゲーミングPCからの収入を表示（PCを持っている場合のみ）
+    if game_state.gaming_pc_level > 0:
+        income_per_sec = game_state.stock * game_state.gaming_pc_level * game_state.gaming_pc_income_per_game
+        text = f"配信収益: {format_number(income_per_sec)}円/秒"
+        pc_income_surface = button_font.render(text, True, (0, 0, 150))
+        
+        # 自動購入と自動クリックの両方がある場合は、さらに下に表示
+        if game_state.auto_clicks > 0 and game_state.auto_purchases > 0:
+            pc_income_x = info_panel.right - pc_income_surface.get_width() - 40
+            screen.blit(pc_income_surface, (pc_income_x, 150))  # 位置を調整
+        # 自動購入か自動クリックのどちらかがある場合
+        elif game_state.auto_clicks > 0 or game_state.auto_purchases > 0:
+            pc_income_x = info_panel.right - pc_income_surface.get_width() - 40
+            screen.blit(pc_income_surface, (pc_income_x, 120))  # 位置を調整
+        # どちらもない場合
+        else:
+            pc_income_x = info_panel.right - pc_income_surface.get_width() - 40
+            screen.blit(pc_income_surface, (pc_income_x, 90))  # 位置を調整
 
 
 def draw_buttons(screen, game_state, buttons, yum_image, cold_sweat_image):
@@ -103,7 +135,7 @@ def draw_buttons(screen, game_state, buttons, yum_image, cold_sweat_image):
     upgrade_buttons = buttons.get("upgrade_buttons", [])
 
     # 中段左：ボタンパネル
-    button_panel = pygame.Rect(20, 190, screen_width // 2 - 40, screen_height - 210)
+    button_panel = pygame.Rect(20, 220, screen_width // 2 - 40, screen_height - 240)  # 上部の位置を調整
     pygame.draw.rect(screen, (230, 240, 250), button_panel, border_radius=15)
     pygame.draw.rect(
         screen, (100, 120, 150), button_panel, 3, border_radius=15
@@ -158,7 +190,7 @@ def draw_buttons(screen, game_state, buttons, yum_image, cold_sweat_image):
 
     # 中段右：アップグレードセクションの背景パネル
     upgrade_panel = pygame.Rect(
-        screen_width // 2 + 20, 190, screen_width // 2 - 40, screen_height - 210
+        screen_width // 2 + 20, 220, screen_width // 2 - 40, screen_height - 240  # 上部の位置を調整
     )
     pygame.draw.rect(
         screen, (245, 240, 250), upgrade_panel, border_radius=20
@@ -168,7 +200,7 @@ def draw_buttons(screen, game_state, buttons, yum_image, cold_sweat_image):
     )  # 枠線を太く
 
     # アップグレードボタンの位置を調整
-    button_spacing = 80  # ボタン間の間隔
+    button_spacing = 60  # ボタン間の間隔を少し狭く
     start_y = upgrade_panel.top + 40  # 開始位置を上に調整
 
     # アップグレードボタンの描画
@@ -209,11 +241,19 @@ def draw_buttons(screen, game_state, buttons, yum_image, cold_sweat_image):
         pygame.draw.rect(screen, color, button, border_radius=15)
 
         # ボタンテキスト
-        name_text = button_font.render(upgrade["name"], True, WHITE)
-        cost_text = button_font.render(
+        name_text = upgrade_font.render(upgrade["name"], True, WHITE)
+        cost_text = upgrade_font.render(
             f"{format_number(upgrade['cost'])}円", True, WHITE
         )
-        count_text = button_font.render(f"所持: {upgrade['count']}", True, WHITE)
+        
+        # ゲーミングPCの場合はレベルを表示、それ以外は所持数を表示
+        if i == 4:  # ゲーミングPC
+            if game_state.gaming_pc_level > 0:
+                count_text = upgrade_font.render(f"Lv.{game_state.gaming_pc_level}", True, WHITE)
+            else:
+                count_text = upgrade_font.render("未所持", True, WHITE)
+        else:
+            count_text = upgrade_font.render(f"所持: {upgrade['count']}", True, WHITE)
 
         # テキスト位置
         name_rect = name_text.get_rect(
@@ -259,9 +299,15 @@ def draw_buttons(screen, game_state, buttons, yum_image, cold_sweat_image):
         image_rect = cold_sweat_image.get_rect(midtop=fixed_img_pos)
         screen.blit(cold_sweat_image, image_rect)
 
-        # 労働で得た金額を表示
+        # 労働で得た金額を表示（ゲーミングPCのボーナスを含む）
+        efficiency_bonus = 1.0
+        if game_state.gaming_pc_level > 0:
+            efficiency_bonus = 1.0 + (game_state.gaming_pc_level * game_state.gaming_pc_efficiency_bonus)
+        
+        earned = int(game_state.work_unit_price * efficiency_bonus)
+        
         earned_text = button_font.render(
-            f"+{format_number(game_state.work_unit_price)}円", True, (0, 0, 150)
+            f"+{format_number(earned)}円", True, (0, 0, 150)
         )
         text_rect = earned_text.get_rect(
             midtop=(
@@ -272,7 +318,7 @@ def draw_buttons(screen, game_state, buttons, yum_image, cold_sweat_image):
         screen.blit(earned_text, text_rect)
 
         # 効果音を鳴らす代わりに視覚的なフィードバック
-        if game_state.work_unit_price >= 1000:
+        if earned >= 1000:
             bonus_text = small_font.render("がんばったね！", True, (200, 0, 100))
             bonus_rect = bonus_text.get_rect(
                 midtop=(fixed_img_pos[0], text_rect.bottom + 5)
@@ -282,9 +328,22 @@ def draw_buttons(screen, game_state, buttons, yum_image, cold_sweat_image):
     # アップグレードボタンがクリックされた場合は、購入成功メッセージを表示
     elif clicked_upgrade is not None and current_time - click_time < animation_duration:
         upgrade = game_state.upgrades[clicked_upgrade]
-        upgrade_text = button_font.render(
-            f"{upgrade['name']}を購入したよ！", True, (150, 0, 150)
-        )
+        
+        # ゲーミングPCの場合は特別なメッセージ
+        if clicked_upgrade == 4:
+            if game_state.gaming_pc_level == 1:
+                upgrade_text = button_font.render(
+                    f"ゲーミングPCを購入したよ！", True, (150, 0, 150)
+                )
+            else:
+                upgrade_text = button_font.render(
+                    f"ゲーミングPCをLv.{game_state.gaming_pc_level}にアップグレードしたよ！", True, (150, 0, 150)
+                )
+        else:
+            upgrade_text = button_font.render(
+                f"{upgrade['name']}を購入したよ！", True, (150, 0, 150)
+            )
+            
         upgrade_rect = upgrade_text.get_rect(
             midtop=(fixed_img_pos[0], fixed_img_pos[1] + 10)
         )

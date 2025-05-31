@@ -52,6 +52,15 @@ class GameState:
         self.last_auto_purchase = 0
         self.auto_purchase_interval = 3.0  # 自動購入の間隔（秒）
 
+        # ゲーミングPCの設定
+        self.gaming_pc_level = 0  # 初期レベルは0（未所持）
+        self.gaming_pc_base_cost = 100  # 初期購入コスト
+        self.gaming_pc_upgrade_cost_multiplier = 1.5  # アップグレード時の価格上昇率
+        self.gaming_pc_income_per_game = 1  # 積みゲー1個あたりの毎秒収入（円）
+        self.gaming_pc_efficiency_bonus = 0.05  # レベルごとの労働効率ボーナス（5%）
+        self.last_pc_income_time = 0  # 最後にPCからの収入を得た時間
+        self.pc_income_interval = 1.0  # PCからの収入を得る間隔（秒）
+
         # アップグレードアイテムのリスト
         self.upgrades = [
             {
@@ -82,6 +91,13 @@ class GameState:
                 "count": 0,
                 "description": f"{self.auto_purchase_interval}秒ごとに{self.auto_purchase_amount}回、自動的にゲームを購入",
             },
+            {
+                "name": "ゲーミングPC",
+                "cost": self.gaming_pc_base_cost,
+                "effect": self.gaming_pc_level,  # 現在のPCレベル
+                "count": 0,
+                "description": f"積みゲーをプレイして配信！ レベルアップで収益UP",
+            },
         ]
 
         # 自動クリック回数（1秒あたり）
@@ -90,8 +106,16 @@ class GameState:
         self.last_auto_update = 0
 
     def click_work(self):
-        self.money += self.work_unit_price
-        return self.work_unit_price  # 増加した金額を返す
+        # ゲーミングPCのレベルに応じた労働効率ボーナスを計算
+        efficiency_bonus = 1.0
+        if self.gaming_pc_level > 0:
+            efficiency_bonus = 1.0 + (
+                self.gaming_pc_level * self.gaming_pc_efficiency_bonus
+            )
+
+        earned = int(self.work_unit_price * efficiency_bonus)
+        self.money += earned
+        return earned  # 増加した金額を返す
 
     def buy_game(self):
         if self.money >= self.game_price:
@@ -117,9 +141,44 @@ class GameState:
                 self.auto_clicks += upgrade["effect"]
             elif index == 3:  # 自動購入ツール
                 self.auto_purchases += upgrade["effect"]
+            elif index == 4:  # ゲーミングPC
+                if self.gaming_pc_level == 0:
+                    # 初めてPCを購入した場合
+                    self.gaming_pc_level = 1
+                else:
+                    # PCをアップグレードする場合
+                    self.gaming_pc_level += 1
 
-            # 価格上昇（購入するたびに1.5倍に）
-            upgrade["cost"] = int(upgrade["cost"] * self.cost_upgrade_per)
+                # PCのレベルを更新
+                upgrade["effect"] = self.gaming_pc_level
+
+                # 次のアップグレード価格を計算
+                upgrade["cost"] = int(
+                    self.gaming_pc_base_cost
+                    * (self.gaming_pc_upgrade_cost_multiplier**self.gaming_pc_level)
+                )
+
+                # 説明文を更新
+                income_per_sec = self.gaming_pc_level * self.gaming_pc_income_per_game
+                efficiency_bonus = int(
+                    self.gaming_pc_level * self.gaming_pc_efficiency_bonus * 100
+                )
+
+                # レベルに応じた特別ボーナスの説明を追加
+                special_bonus = ""
+                if self.gaming_pc_level >= 10:
+                    special_bonus = "、自動購入間隔-10%"
+
+                upgrade["description"] = (
+                    f"Lv.{self.gaming_pc_level}: 積みゲー×{income_per_sec}円/秒、労働効率+{efficiency_bonus}%{special_bonus}"
+                )
+
+                return True  # 購入成功
+
+            # ゲーミングPC以外のアップグレードは通常の価格上昇
+            if index != 4:
+                upgrade["cost"] = int(upgrade["cost"] * self.cost_upgrade_per)
+
             return True  # 購入成功
         return False  # 購入失敗
 
@@ -134,13 +193,26 @@ class GameState:
 
         # 自動購入の処理
         elapsed_purchase = current_time - self.last_auto_purchase
-        if (
-            elapsed_purchase >= self.auto_purchase_interval
-        ):  # 設定した間隔以上経過していたら
+
+        # ゲーミングPCのレベルが10以上なら自動購入間隔を短縮
+        auto_purchase_interval = self.auto_purchase_interval
+        if self.gaming_pc_level >= 10:
+            auto_purchase_interval *= 0.9  # 10%短縮
+
+        if elapsed_purchase >= auto_purchase_interval:  # 設定した間隔以上経過していたら
             # 自動購入回数分だけゲームを購入
             for _ in range(self.auto_purchases):
                 self.buy_game()  # 購入できない場合は何も起きない
             self.last_auto_purchase = current_time
+
+        # ゲーミングPCからの収入処理
+        if self.gaming_pc_level > 0:
+            elapsed_pc_income = current_time - self.last_pc_income_time
+            if elapsed_pc_income >= self.pc_income_interval:  # 1秒ごとに収入
+                # 積みゲー数 × PCレベル × 収入係数で1秒あたりの収入を計算
+                income_per_sec = self.stock * self.gaming_pc_level * self.gaming_pc_income_per_game
+                self.money += int(income_per_sec)
+                self.last_pc_income_time = current_time
 
 
 def main():
@@ -157,13 +229,16 @@ def main():
 
     # アップグレードボタンの設定 - 右側に縦に並べる
     upgrade_buttons = []
-    for i in range(4):  # 4つのアップグレード
+    for i in range(5):  # 5つのアップグレード（ゲーミングPC追加）
         upgrade_buttons.append(pygame.Rect(0, 0, 300, 150))  # 位置は後で調整
 
     clock = pygame.time.Clock()
     game_state = GameState()
     game_state.last_auto_update = pygame.time.get_ticks() / 1000  # 初期化
     game_state.last_auto_purchase = pygame.time.get_ticks() / 1000  # 自動購入の初期化
+    game_state.last_pc_income_time = (
+        pygame.time.get_ticks() / 1000
+    )  # PCからの収入の初期化
 
     # デフォルトカーソルと手のカーソルを設定
     default_cursor = pygame.SYSTEM_CURSOR_ARROW
