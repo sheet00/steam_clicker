@@ -29,34 +29,48 @@ class GameState:
     def __init__(self):
         # .envファイルから設定を読み込む
         current_dir = os.path.dirname(os.path.abspath(__file__))
-        env_path = os.path.join(current_dir, '.env')
+        env_path = os.path.join(current_dir, ".env")
         config = load_env_file(env_path)
-        
+
         # 基本設定
-        self.money = config.get('INITIAL_MONEY', 0)
-        self.stock = config.get('INITIAL_STOCK', 0)
-        self.work_unit_price = config.get('WORK_UNIT_PRICE', 100)
+        self.money = config.get("INITIAL_MONEY", 0)
+        self.stock = config.get("INITIAL_STOCK", 0)
+        self.work_unit_price = config.get("WORK_UNIT_PRICE", 100)
         self.auto_work_unit_price = 0
-        self.purchase_count = config.get('PURCHASE_COUNT', 1)  # 購入力から購入数に変更
-        self.game_price = config.get('GAME_PRICE', 100.0)  # 小数で管理するために float に変更
+        self.purchase_count = config.get("PURCHASE_COUNT", 1)  # 購入力から購入数に変更
+        self.game_price = config.get(
+            "GAME_PRICE", 100.0
+        )  # 小数で管理するために float に変更
 
         # 各アップグレードの効果量を変数として定義
-        self.work_unit_up_percent = config.get('WORK_UNIT_UP_PERCENT', 1000)  # 賃金%アップ
-        self.purchase_power_up_percent = config.get('PURCHASE_POWER_UP_PERCENT', 200)  # 購入数%アップ
-        self.auto_click_amount = config.get('AUTO_CLICK_AMOUNT', 100)  # 自動クリック回数（1秒あたり）
-        self.auto_purchase_amount = config.get('AUTO_PURCHASE_AMOUNT', 100)  # 購入自動化回数（3秒あたり）
+        self.work_unit_up_percent = config.get(
+            "WORK_UNIT_UP_PERCENT", 1000
+        )  # 賃金%アップ
+        self.purchase_power_up_percent = config.get(
+            "PURCHASE_POWER_UP_PERCENT", 200
+        )  # 購入数%アップ
+        self.auto_click_amount = config.get(
+            "AUTO_CLICK_AMOUNT", 100
+        )  # 自動クリック回数（1秒あたり）
+        self.auto_purchase_amount = config.get(
+            "AUTO_PURCHASE_AMOUNT", 100
+        )  # 購入自動化回数（3秒あたり）
 
         # 各アップグレードの初期コストをselfプロパティとして定義
-        self.efficiency_tool_cost = config.get('EFFICIENCY_TOOL_COST', 200)
-        self.bulk_purchase_cost = config.get('BULK_PURCHASE_COST', 200)
-        self.auto_work_tool_cost = config.get('AUTO_WORK_TOOL_COST', 200)
-        self.auto_purchase_tool_cost = config.get('AUTO_PURCHASE_TOOL_COST', 200)
-        self.early_access_cost = config.get('EARLY_ACCESS_COST', 300)
+        self.efficiency_tool_cost = config.get("EFFICIENCY_TOOL_COST", 200)
+        self.bulk_purchase_cost = config.get("BULK_PURCHASE_COST", 200)
+        self.auto_work_tool_cost = config.get("AUTO_WORK_TOOL_COST", 200)
+        self.auto_purchase_tool_cost = config.get("AUTO_PURCHASE_TOOL_COST", 200)
+        self.early_access_cost = config.get("EARLY_ACCESS_COST", 300)
 
         # アーリーアクセス関連の設定
         self.early_access_level = 0  # アーリーアクセスのレベル
-        self.early_access_return_percent = config.get('EARLY_ACCESS_RETURN_PERCENT', 100)  # 基本の資産増加率（%）
-        self.early_access_interval = config.get('EARLY_ACCESS_INTERVAL', 1.0)  # 収益が発生する間隔（秒）
+        self.early_access_return_percent = config.get(
+            "EARLY_ACCESS_RETURN_PERCENT", 100
+        )  # 基本の資産増加率（%）
+        self.early_access_interval = config.get(
+            "EARLY_ACCESS_INTERVAL", 1.0
+        )  # 収益が発生する間隔（秒）
         self.last_early_access_return = 0  # 最後に収益が発生した時間
         self.total_early_access_investment = 0  # アーリーアクセスへの総投資額
         self.last_early_access_result = 0  # 最後のアーリーアクセス収益結果
@@ -65,20 +79,34 @@ class GameState:
         self.last_early_access_game_bonus = 0.0  # ゲーム数によるボーナス収益率
 
         # 値上がり率
-        self.upgrade_cost_multiplier = config.get('UPGRADE_COST_MULTIPLIER', 1.2)  # アップグレードの値上がり率
-        self.game_cost_multiplier = config.get('GAME_COST_MULTIPLIER', 1.0)  # ゲーム価格の値上がり率
+        self.upgrade_cost_multiplier = config.get(
+            "UPGRADE_COST_MULTIPLIER", 1.2
+        )  # アップグレードの値上がり率
+        self.game_cost_multiplier = config.get(
+            "GAME_COST_MULTIPLIER", 1.0
+        )  # ゲーム価格の値上がり率
 
         # 購入自動化の設定
         self.auto_purchases = 0
         self.last_auto_purchase = 0
-        self.auto_purchase_interval = config.get('AUTO_PURCHASE_INTERVAL', 3.0)  # 購入自動化の間隔（秒）
+        self.auto_purchase_interval = config.get(
+            "AUTO_PURCHASE_INTERVAL", 3.0
+        )  # 購入自動化の間隔（秒）
 
         # ゲーミングPCの設定
         self.gaming_pc_level = 0  # 初期レベルは0（未所持）
-        self.gaming_pc_base_cost = config.get('GAMING_PC_BASE_COST', 100)  # 初期購入コスト
-        self.gaming_pc_income_per_game = config.get('GAMING_PC_INCOME_PER_GAME', 100)  # 積みゲー1個あたりの毎秒収入（円）
-        self.gaming_pc_efficiency_bonus = config.get('GAMING_PC_EFFICIENCY_BONUS', 0.05)  # レベルごとの労働効率ボーナス
-        self.gaming_pc_interval_reduction = config.get('GAMING_PC_INTERVAL_REDUCTION', 0.2)  # レベルごとの購入自動化間隔短縮率
+        self.gaming_pc_base_cost = config.get(
+            "GAMING_PC_BASE_COST", 100
+        )  # 初期購入コスト
+        self.gaming_pc_income_per_game = config.get(
+            "GAMING_PC_INCOME_PER_GAME", 100
+        )  # 積みゲー1個あたりの毎秒収入（円）
+        self.gaming_pc_efficiency_bonus = config.get(
+            "GAMING_PC_EFFICIENCY_BONUS", 0.05
+        )  # レベルごとの労働効率ボーナス
+        self.gaming_pc_interval_reduction = config.get(
+            "GAMING_PC_INTERVAL_REDUCTION", 0.2
+        )  # レベルごとの購入自動化間隔短縮率
         self.last_pc_income_time = 0  # 最後にPCからの収入を得た時間
         self.pc_income_interval = 1.0  # PCからの収入を得る間隔（秒）
 
@@ -110,7 +138,7 @@ class GameState:
                 "cost": self.auto_purchase_tool_cost,
                 "effect": self.auto_purchase_amount,  # 3秒あたりの購入自動化回数
                 "count": 0,
-                "description": f"{self.auto_purchase_interval}秒ごとに{self.auto_purchase_amount}回、自動的にゲームを購入",
+                "description": f"{self.auto_purchase_interval:.1f}秒ごとに{self.auto_purchase_amount}回、自動的にゲームを購入",
             },
             {
                 "name": "ゲーミングPC",
@@ -124,7 +152,7 @@ class GameState:
                 "cost": self.early_access_cost,
                 "effect": self.early_access_return_percent,  # 基本の資産増加率（%）
                 "count": 0,
-                "description": f"開発中のゲームに投資！投資額の{self.early_access_return_percent}%が還元",
+                "description": f"開発中のゲームに投資！投資額が変動して還元されます (Lv.{self.early_access_level})",
             },
         ]
 
@@ -189,9 +217,27 @@ class GameState:
                 increase_amount = self.purchase_count * (upgrade["effect"] / 100)
                 self.purchase_count += increase_amount
             elif index == 2:  # 労働自動化ツール
-                self.auto_clicks += upgrade["effect"]
+                # 現在の自動クリック数に対して指定パーセント分アップ
+                if self.auto_clicks == 0:
+                    self.auto_clicks = 1
+                else:
+                    increase_amount = self.auto_clicks * (upgrade["effect"] / 100)
+                    self.auto_clicks += increase_amount
+                # 説明文を更新
+                upgrade["description"] = (
+                    f"毎秒{int(self.auto_clicks)}回、自動的に労働ボタンをクリック"
+                )
             elif index == 3:  # 購入自動化ツール
-                self.auto_purchases += upgrade["effect"]
+                # 現在の自動購入数に対して指定パーセント分アップ
+                if self.auto_purchases == 0:
+                    self.auto_purchases = 1
+                else:
+                    increase_amount = self.auto_purchases * (upgrade["effect"] / 100)
+                    self.auto_purchases += increase_amount
+                # 説明文を更新
+                upgrade["description"] = (
+                    f"{self.auto_purchase_interval:.1f}秒ごとに{int(self.auto_purchases)}回、自動的にゲームを購入"
+                )
             elif index == 4:  # ゲーミングPC
                 if self.gaming_pc_level == 0:
                     # 初めてPCを購入した場合
@@ -258,7 +304,7 @@ class GameState:
         elapsed = current_time - self.last_auto_update
         if elapsed >= 1.0:  # 1秒以上経過していたら
             # 自動クリック回数分だけ労働ボタンをクリックした効果を得る
-            for _ in range(self.auto_clicks):
+            for _ in range(round(self.auto_clicks)):
                 self.click_work()
             self.last_auto_update = current_time
 
@@ -276,7 +322,7 @@ class GameState:
 
         if elapsed_purchase >= auto_purchase_interval:  # 設定した間隔以上経過していたら
             # 購入自動化回数分だけゲームを購入
-            for _ in range(self.auto_purchases):
+            for _ in range(round(self.auto_purchases)):
                 self.buy_game()  # 購入できない場合は何も起きない
             self.last_auto_purchase = current_time
 
@@ -415,7 +461,9 @@ def main():
                 # リセットボタンがクリックされた場合
                 if reset_button.collidepoint(mouse_pos):
                     # .envファイルを再読み込みしてゲームステータスをリセット
-                    game_state = GameState()  # これで.envファイルから最新の設定を読み込む
+                    game_state = (
+                        GameState()
+                    )  # これで.envファイルから最新の設定を読み込む
                     game_state.last_auto_update = current_time
                     game_state.last_auto_purchase = current_time
                     game_state.last_pc_income_time = current_time
