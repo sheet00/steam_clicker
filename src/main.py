@@ -32,36 +32,57 @@ class GameState:
         env_path = os.path.join(current_dir, ".env")
         config = load_env_file(env_path)
 
-        # 基本設定
-        self.money = config.get("INITIAL_MONEY", 0)
-        self.stock = config.get("INITIAL_STOCK", 0)
-        self.work_unit_price = config.get("WORK_UNIT_PRICE", 100)
-        self.auto_work_unit_price = 0
-        self.purchase_count = config.get("PURCHASE_COUNT", 1)  # 購入力から購入数に変更
-        self.game_price = config.get(
-            "GAME_PRICE", 100.0
-        )  # 小数で管理するために float に変更
-
-        # 各アップグレードの効果量を変数として定義
-        self.work_unit_up_percent = config.get(
-            "WORK_UNIT_UP_PERCENT", 1000
-        )  # 賃金%アップ
-        self.purchase_power_up_percent = config.get(
-            "PURCHASE_POWER_UP_PERCENT", 200
-        )  # 購入数%アップ
-        self.auto_click_amount = config.get(
-            "AUTO_CLICK_AMOUNT", 100
-        )  # 自動クリック回数（1秒あたり）
-        self.auto_purchase_amount = config.get(
-            "AUTO_PURCHASE_AMOUNT", 100
-        )  # 購入自動化回数（3秒あたり）
-
         # 各アップグレードの初期コストをselfプロパティとして定義
         self.efficiency_tool_cost = config.get("EFFICIENCY_TOOL_COST", 200)
         self.bulk_purchase_cost = config.get("BULK_PURCHASE_COST", 200)
         self.auto_work_tool_cost = config.get("AUTO_WORK_TOOL_COST", 200)
         self.auto_purchase_tool_cost = config.get("AUTO_PURCHASE_TOOL_COST", 200)
         self.early_access_cost = config.get("EARLY_ACCESS_COST", 300)
+
+        # 基本設定
+        self.money = config.get("INITIAL_MONEY", 0)
+        self.stock = config.get("INITIAL_STOCK", 0)
+        self.work_unit_price = config.get("WORK_UNIT_PRICE", 100)
+        self.auto_work_unit_price = 0
+        self.purchase_count = config.get("PURCHASE_COUNT", 1)
+        self.game_price = config.get("GAME_PRICE", 100.0)
+
+        # 各アップグレードの効果量を変数として定義
+        # 労働DX 賃金%アップ
+        self.work_unit_up_percent = config.get("WORK_UNIT_UP_PERCENT", 1000)
+
+        # 同時購入数%アップ
+        self.purchase_power_up_percent = config.get("PURCHASE_POWER_UP_PERCENT", 200)
+
+        # 労働自動化ツール 自動クリック%アップ
+        self.auto_click_up_percent = config.get("AUTO_CLICK_UP_PERCENT", 100)
+        self.auto_clicks = 0  # 自動クリック回数（1秒あたり）
+        self.last_auto_update = 0  # 最後の自動クリック更新時間
+
+        # 購入自動化ツール 購入自動化%アップ
+        self.auto_purchase_up_percent = config.get("AUTO_PURCHASE_UP_PERCENT", 100)
+        self.auto_purchases = 0  # 購入自動化回数（3秒あたり）
+        self.last_auto_purchase = 0
+        self.auto_purchase_interval = config.get(
+            "AUTO_PURCHASE_INTERVAL", 3.0
+        )  # 購入自動化の間隔（秒）
+
+        # ゲーミングPCの設定
+        self.gaming_pc_level = 0  # 初期レベルは0（未所持）
+        self.gaming_pc_base_cost = config.get(
+            "GAMING_PC_BASE_COST", 100
+        )  # 初期購入コスト
+        self.gaming_pc_income_per_game = config.get(
+            "GAMING_PC_INCOME_PER_GAME", 100
+        )  # 積みゲー1個あたりの毎秒収入（円）
+        self.gaming_pc_efficiency_bonus = config.get(
+            "GAMING_PC_EFFICIENCY_BONUS", 0.05
+        )  # レベルごとの労働効率ボーナス
+        self.gaming_pc_interval_reduction = config.get(
+            "GAMING_PC_INTERVAL_REDUCTION", 0.2
+        )  # レベルごとの購入自動化間隔短縮率
+        self.last_pc_income_time = 0  # 最後にPCからの収入を得た時間
+        self.pc_income_interval = 1.0  # PCからの収入を得る間隔（秒）
 
         # アーリーアクセス関連の設定
         self.early_access_level = 0  # アーリーアクセスのレベル
@@ -86,30 +107,6 @@ class GameState:
             "GAME_COST_MULTIPLIER", 1.0
         )  # ゲーム価格の値上がり率
 
-        # 購入自動化の設定
-        self.auto_purchases = 0
-        self.last_auto_purchase = 0
-        self.auto_purchase_interval = config.get(
-            "AUTO_PURCHASE_INTERVAL", 3.0
-        )  # 購入自動化の間隔（秒）
-
-        # ゲーミングPCの設定
-        self.gaming_pc_level = 0  # 初期レベルは0（未所持）
-        self.gaming_pc_base_cost = config.get(
-            "GAMING_PC_BASE_COST", 100
-        )  # 初期購入コスト
-        self.gaming_pc_income_per_game = config.get(
-            "GAMING_PC_INCOME_PER_GAME", 100
-        )  # 積みゲー1個あたりの毎秒収入（円）
-        self.gaming_pc_efficiency_bonus = config.get(
-            "GAMING_PC_EFFICIENCY_BONUS", 0.05
-        )  # レベルごとの労働効率ボーナス
-        self.gaming_pc_interval_reduction = config.get(
-            "GAMING_PC_INTERVAL_REDUCTION", 0.2
-        )  # レベルごとの購入自動化間隔短縮率
-        self.last_pc_income_time = 0  # 最後にPCからの収入を得た時間
-        self.pc_income_interval = 1.0  # PCからの収入を得る間隔（秒）
-
         # アップグレードアイテムのリスト
         self.upgrades = [
             {
@@ -129,16 +126,16 @@ class GameState:
             {
                 "name": "労働自動化ツール",
                 "cost": self.auto_work_tool_cost,
-                "effect": self.auto_click_amount,  # 1秒あたりの自動クリック回数
+                "effect": self.auto_click_up_percent,  # 自動クリック%アップ
                 "count": 0,
-                "description": f"毎秒{self.auto_click_amount}回、自動的に労働ボタンをクリック",
+                "description": f"毎秒の自動クリック回数+{self.auto_click_up_percent}%アップ",
             },
             {
                 "name": "購入自動化ツール",
                 "cost": self.auto_purchase_tool_cost,
-                "effect": self.auto_purchase_amount,  # 3秒あたりの購入自動化回数
+                "effect": self.auto_purchase_up_percent,  # 購入自動化%アップ
                 "count": 0,
-                "description": f"{self.auto_purchase_interval:.1f}秒ごとに{self.auto_purchase_amount}回、自動的にゲームを購入",
+                "description": f"毎秒の自動購入回数+{self.auto_purchase_up_percent}%アップ",
             },
             {
                 "name": "ゲーミングPC",
@@ -155,11 +152,6 @@ class GameState:
                 "description": f"開発中のゲームに投資！投資額が変動して還元されます (Lv.{self.early_access_level})",
             },
         ]
-
-        # 自動クリック回数（1秒あたり）
-        self.auto_clicks = 0
-        # 最後の自動クリック更新時間
-        self.last_auto_update = 0
 
     def click_work(self):
         # ゲーミングPCのレベルに応じた労働効率ボーナスを計算
@@ -217,8 +209,8 @@ class GameState:
                 increase_amount = self.purchase_count * (upgrade["effect"] / 100)
                 self.purchase_count += increase_amount
             elif index == 2:  # 労働自動化ツール
-                # 現在の自動クリック数に対して指定パーセント分アップ
-                if self.auto_clicks == 0:
+                # 現在の自動クリック数に対して指定パーセンテージ分アップ
+                if self.auto_clicks == 0:  # 初期値が0の場合、1からスタート
                     self.auto_clicks = 1
                 else:
                     increase_amount = self.auto_clicks * (upgrade["effect"] / 100)
@@ -228,8 +220,8 @@ class GameState:
                     f"毎秒{int(self.auto_clicks)}回、自動的に労働ボタンをクリック"
                 )
             elif index == 3:  # 購入自動化ツール
-                # 現在の自動購入数に対して指定パーセント分アップ
-                if self.auto_purchases == 0:
+                # 現在の自動購入数に対して指定パーセンテージ分アップ
+                if self.auto_purchases == 0:  # 初期値が0の場合、1からスタート
                     self.auto_purchases = 1
                 else:
                     increase_amount = self.auto_purchases * (upgrade["effect"] / 100)
