@@ -63,7 +63,7 @@ def draw_texts(screen, game_state):
     """テキストを描画する関数"""
     # 上段：情報パネルの背景（画面幅いっぱいに広げる）
     screen_width = screen.get_width()
-    info_panel = pygame.Rect(20, 20, screen_width - 40, 180)  # 高さを180pxに増やす
+    info_panel = pygame.Rect(40, 40, screen_width - 80, 180)  # マージンを増やす
     pygame.draw.rect(screen, LIGHT_GRAY, info_panel, border_radius=15)
     pygame.draw.rect(screen, BLACK, info_panel, 3, border_radius=15)  # 枠線を太く
 
@@ -180,8 +180,8 @@ def draw_buttons(screen, game_state, buttons, yum_image, cold_sweat_image):
 
     # 中段左：ボタンパネル
     button_panel = pygame.Rect(
-        20, 220, screen_width // 2 - 40, screen_height - 240
-    )  # 上部の位置を調整
+        40, 260, screen_width // 2 - 60, screen_height - 300
+    )  # マージンを増やす
     pygame.draw.rect(screen, (230, 240, 250), button_panel, border_radius=15)
     pygame.draw.rect(
         screen, (100, 120, 150), button_panel, 3, border_radius=15
@@ -236,10 +236,10 @@ def draw_buttons(screen, game_state, buttons, yum_image, cold_sweat_image):
 
     # 中段右：アップグレードセクションの背景パネル
     upgrade_panel = pygame.Rect(
-        screen_width // 2 + 20,
-        220,
-        screen_width // 2 - 40,
-        screen_height - 240,  # 上部の位置を調整
+        screen_width // 2 + 40,
+        260,
+        screen_width // 2 - 80,
+        screen_height - 300,  # マージンを増やす
     )
     pygame.draw.rect(
         screen, (245, 240, 250), upgrade_panel, border_radius=20
@@ -248,22 +248,10 @@ def draw_buttons(screen, game_state, buttons, yum_image, cold_sweat_image):
         screen, (100, 50, 150), upgrade_panel, 3, border_radius=20
     )  # 枠線を太く
 
-    # アップグレードボタンの位置を調整 - 縦幅均等に配置
-    available_height = upgrade_panel.height - 80  # パネル上下のマージン（40px×2）
-    button_height = 90  # ボタンの高さ
-    description_space = 60  # 説明文のスペース
-    total_item_height = button_height + description_space  # 1アイテムの合計高さ
-    
-    # 5つのアイテムの合計高さ
-    total_items_height = len(upgrade_buttons) * total_item_height
-    
-    # 残りのスペースを均等に分配
-    if len(upgrade_buttons) > 1:
-        button_spacing = (available_height - total_items_height) / (len(upgrade_buttons) - 1)
-    else:
-        button_spacing = 0
-        
-    start_y = upgrade_panel.top + 40  # 開始位置
+    # アップグレードボタンの位置を調整 - 固定マージンで配置
+    margin_top = 40  # 上部マージン（調整用変数）
+    button_spacing = 100  # ボタン間の固定間隔
+    start_y = upgrade_panel.top + margin_top  # 開始位置
 
     # アップグレードボタンの描画
     for i, button in enumerate(upgrade_buttons):
@@ -277,11 +265,13 @@ def draw_buttons(screen, game_state, buttons, yum_image, cold_sweat_image):
 
         # ボタンとその説明をワンセットとして背景を描画
         set_rect = pygame.Rect(
-            button.left - 20,  # 左側の余白
-            button.top - 20,  # 上側の余白
-            button.width + 40,  # 右側の余白
-            button.height + 60,  # 説明文のスペースを十分に確保
+            button.left - 30,  # 左側の余白を増やす
+            button.top - 25,  # 上側の余白を増やす
+            button.width + 60,  # 右側の余白を増やす
+            button.height + 70,  # 説明文のスペースを増やす
         )
+
+        # 背景と枠線を描画
         pygame.draw.rect(
             screen, (230, 225, 240), set_rect, border_radius=15
         )  # 薄い背景色
@@ -377,8 +367,8 @@ def draw_buttons(screen, game_state, buttons, yum_image, cold_sweat_image):
 
         # 説明テキスト
         desc_text = small_font.render(upgrade["description"], True, BLACK)
-        # 説明テキストの位置をボタンの下部から25px下に配置（枠内に収まるように）
-        desc_rect = desc_text.get_rect(center=(button.centerx, button.bottom + 25))
+        # 説明テキストの位置をボタンの下部から30px下に配置（枠内に収まるように）
+        desc_rect = desc_text.get_rect(center=(button.centerx, button.bottom + 30))
         screen.blit(desc_text, desc_rect)
 
     # クリックされたボタンに応じて画像を表示（固定位置：購入ボタンの下）

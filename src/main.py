@@ -59,7 +59,7 @@ class GameState:
         self.gaming_pc_income_per_game = 1  # 積みゲー1個あたりの毎秒収入（円）
         self.gaming_pc_efficiency_bonus = 0.05  # レベルごとの労働効率ボーナス（5%）
         self.gaming_pc_interval_reduction = (
-            0.3  # レベルごとの購入自動化間隔短縮率（2%）
+            0.01  # レベルごとの購入自動化間隔短縮率（2%）
         )
         self.last_pc_income_time = 0  # 最後にPCからの収入を得た時間
         self.pc_income_interval = 1.0  # PCからの収入を得る間隔（秒）
