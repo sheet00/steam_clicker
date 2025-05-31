@@ -1,7 +1,7 @@
+import random
 import pygame
 import os
 import sys
-import random  # ランダム要素のためにrandomをインポート
 from pygame.locals import *
 from ui_components import draw_texts, draw_buttons
 from config_loader import load_env_file
@@ -106,6 +106,7 @@ class GameState:
         self.game_cost_multiplier = config.get(
             "GAME_COST_MULTIPLIER", 1.0
         )  # ゲーム価格の値上がり率
+        self.last_game_price_update_time = 0  # ゲーム価格の最終更新時間
 
         # アップグレードアイテムのリスト
         self.upgrades = [
@@ -186,9 +187,6 @@ class GameState:
         if self.money >= total_cost and actual_purchase > 0:
             self.money -= total_cost  # 合計金額を支払い
             self.stock += actual_purchase  # 実際に購入した数を加算
-
-            # ゲーム価格を上昇させる（内部的には小数で計算）
-            self.game_price = self.game_price * self.game_cost_multiplier
 
             return actual_purchase  # 実際に購入した数を返す
         return 0  # 購入失敗（お金が1個分もない場合）
@@ -348,7 +346,7 @@ class GameState:
                 actual_return_percent = round(random.uniform(0, max_return_percent), 2)
 
                 # 6:4の確率で増加または減少を決定
-                is_negative = random.random() < 0.4  # 40%の確率で減少
+                is_negative = random.random() < 0.49  # 40%の確率で減少
                 if is_negative:
                     actual_return_percent = -actual_return_percent  # マイナスにする
 
@@ -368,6 +366,17 @@ class GameState:
                 self.last_early_access_is_negative = is_negative
                 self.last_early_access_actual_percent = actual_return_percent
                 self.last_early_access_game_bonus = game_bonus_percent
+
+        # ゲーム価格の変動処理 (1秒ごと)
+        elapsed_game_price = current_time - self.last_game_price_update_time
+        if elapsed_game_price >= 1.0:  # 1秒以上経過していたら
+            if random.random() < 0.4:
+                # 価格を下降させる
+                self.game_price = self.game_price / self.game_cost_multiplier
+            else:
+                # 価格を上昇させる
+                self.game_price = self.game_price * self.game_cost_multiplier
+            self.last_game_price_update_time = current_time
 
 
 def main():
@@ -398,6 +407,9 @@ def main():
     game_state.last_early_access_return = (
         pygame.time.get_ticks() / 1000
     )  # アーリーアクセスの初期化
+    game_state.last_game_price_update_time = (
+        pygame.time.get_ticks() / 1000
+    )  # ゲーム価格変動の初期化
 
     # デフォルトカーソルと手のカーソルを設定
     default_cursor = pygame.SYSTEM_CURSOR_ARROW
