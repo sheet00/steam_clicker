@@ -96,6 +96,7 @@ class GameState:
         self.early_access_return_percent = config.get(
             "EARLY_ACCESS_RETURN_PERCENT", 100
         )  # 基本の資産増加率（%）
+        self.max_return_percent = 0.0  # 最大利益率の初期値を追加
         self.early_access_interval = config.get(
             "EARLY_ACCESS_INTERVAL", 1.0
         )  # 収益が発生する間隔（秒）
@@ -366,19 +367,21 @@ class GameState:
                 elapsed_early_access >= self.early_access_interval
             ):  # 設定した間隔ごとに収入
                 # 投資額に対して収益率を適用 - 小数点2桁で丸める
-                max_return_percent = round(
+                self.max_return_percent = round(
                     self.early_access_level * self.early_access_return_percent, 2
                 )
 
                 # 保有ゲーム数によるボーナス
                 game_bonus_percent = round((self.stock / 100) * 0.1, 2)
-                max_return_percent += game_bonus_percent
+                self.max_return_percent += game_bonus_percent
 
                 # 0%から最大収益率までのランダムな値を生成
-                actual_return_percent = round(random.uniform(0, max_return_percent), 2)
+                actual_return_percent = round(
+                    random.uniform(0, self.max_return_percent), 2
+                )
 
                 # 6:4の確率で増加または減少を決定
-                is_negative = random.random() < 0.49  # 40%の確率で減少
+                is_negative = random.random() < 0.4  # 40%の確率で減少
                 if is_negative:
                     actual_return_percent = -actual_return_percent  # マイナスにする
 

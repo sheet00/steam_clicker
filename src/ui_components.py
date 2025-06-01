@@ -724,8 +724,8 @@ def draw_upgrade_status_panel(screen, game_state):
             line2_rect = line2_surface.get_rect(center=(x, y + 20))
             screen.blit(line2_surface, line2_rect)
         elif i == 5:  # アーリーアクセスの場合
-            # 1行目: 投資額と最大還元率
-            line1_text = f"投資額 {format_japanese_currency(game_state.total_early_access_investment)} 最大還元率 {int(game_state.early_access_return_percent*100)}%"
+            # 1行目: 投資額と最大利益率
+            line1_text = f"投資額 {format_japanese_currency(game_state.total_early_access_investment)} 最大利益率 {int(game_state.max_return_percent)}%"
             line1_surface = font_small.render(line1_text, True, TEXT_SECONDARY)
             line1_rect = line1_surface.get_rect(center=(x, y))
             screen.blit(line1_surface, line1_rect)
