@@ -98,13 +98,6 @@ class GameState:
                 "description": f"労働をDX化して業務効率化！\n賃金が{self.work_unit_up_percent*100:.0f}%アップ",
             },
             {
-                "name": "同時購入数アップ",
-                "cost": self.bulk_purchase_cost,
-                "effect": self.purchase_power_up_percent,  # 購入数アップ率（%）
-                "count": 0,
-                "description": f"一括大量購入で、無駄遣いも効率的に！\n購入数が{self.purchase_power_up_percent*100:.0f}%アップ",
-            },
-            {
                 "name": "労働自動化ツール",
                 "cost": self.auto_work_tool_cost,
                 "effect": self.auto_click_up_percent,  # 自動クリック%アップ
@@ -119,6 +112,13 @@ class GameState:
                 "description": f"勝手にゲームを購入してくれるロボット\n{self.auto_purchase_interval:.1f}秒ごとの自動購入回数+{self.auto_purchase_up_percent*100:.0f}%アップ",
             },
             {
+                "name": "同時購入数アップ",
+                "cost": self.bulk_purchase_cost,
+                "effect": self.purchase_power_up_percent,  # 購入数アップ率（%）
+                "count": 0,
+                "description": f"一括大量購入で、無駄遣いも効率的に！\n購入数が{self.purchase_power_up_percent*100:.0f}%アップ",
+            },
+            {
                 "name": "ゲーミングPC",
                 "cost": self.gaming_pc_base_cost,
                 "effect": self.gaming_pc_level,  # 現在のPCレベル
@@ -130,7 +130,7 @@ class GameState:
                 "cost": self.early_access_cost,
                 "effect": self.early_access_return_percent,  # 基本の資産増加率（%）
                 "count": 0,
-                "description": f"未完成の夢に投資しよう\n {self.early_access_interval}秒毎、投資額の{self.early_access_return_percent*100:.2f}%収益",
+                "description": f"未完成の夢に投資しよう\n {self.early_access_interval}秒毎、保有ゲーム数*投資額の{self.early_access_return_percent*100:.2f}%収益",
             },
         ]
 
@@ -182,24 +182,24 @@ class GameState:
                 # 現在の賃金に対して指定パーセント分アップ
                 increase_amount = int(self.work_unit_price * upgrade["effect"])
                 self.work_unit_price += increase_amount
-            elif index == 1:  # 同時購入数アップ
-                # 現在の購入数に対して指定パーセント分アップ
-                increase_amount = self.purchase_count * upgrade["effect"]
-                self.purchase_count += increase_amount
-            elif index == 2:  # 労働自動化ツール
+            elif index == 1:  # 労働自動化ツール
                 # 現在の自動クリック数に対して指定パーセンテージ分アップ
                 if self.auto_clicks == 0:  # 初期値が0の場合、1からスタート
                     self.auto_clicks = 1
                 else:
                     increase_amount = self.auto_clicks * upgrade["effect"]
                     self.auto_clicks += increase_amount
-            elif index == 3:  # 購入自動化ツール
+            elif index == 2:  # 購入自動化ツール
                 # 現在の自動購入数に対して指定パーセンテージ分アップ
                 if self.auto_purchases == 0:  # 初期値が0の場合、1からスタート
                     self.auto_purchases = 1
                 else:
                     increase_amount = self.auto_purchases * upgrade["effect"]
                     self.auto_purchases += increase_amount
+            elif index == 3:  # 同時購入数アップ
+                # 現在の購入数に対して指定パーセント分アップ
+                increase_amount = self.purchase_count * upgrade["effect"]
+                self.purchase_count += increase_amount
             elif index == 4:  # ゲーミングPC
                 if self.gaming_pc_level == 0:
                     # 初めてPCを購入した場合
@@ -317,11 +317,6 @@ class GameState:
                     random.uniform(0, self.max_return_percent), 2
                 )
 
-                # 6:4の確率で増加または減少を決定
-                is_negative = random.random() < 0.4  # 40%の確率で減少
-                if is_negative:
-                    actual_return_percent = -actual_return_percent  # マイナスにする
-
                 # 収益額を計算
                 return_amount = int(
                     self.total_early_access_investment * actual_return_percent
@@ -335,7 +330,6 @@ class GameState:
 
                 # 今回の結果を記録（UI表示用）
                 self.last_early_access_result = return_amount
-                self.last_early_access_is_negative = is_negative
                 self.last_early_access_actual_percent = actual_return_percent
                 self.last_early_access_game_bonus = game_bonus_percent
                 self.early_access_investment_per_second = (
