@@ -1,4 +1,3 @@
-import random
 import pygame
 import os
 import sys
@@ -15,10 +14,6 @@ from game_state import GameState
 # 画面設定
 WINDOW_WIDTH = 1480  # 画面幅を調整
 WINDOW_HEIGHT = 1000  # 画面高さを調整
-
-# 色の定義 (ui_components.pyで定義されているため削除)
-# WHITE = (255, 255, 255)
-# BLACK = (0, 0, 0)
 
 pygame.init()
 
@@ -109,8 +104,6 @@ def main():
     click_time = 0
     clicked_upgrade = None
     purchased_count = 0  # 購入数を追跡する変数を追加
-
-    # リセットボタンの色はui_components.pyで定義
 
     # ボタン辞書を初期化
     buttons = {
