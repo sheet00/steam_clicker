@@ -244,13 +244,13 @@ def format_purchase_count(purchase_count):
 def draw_stats_cards(screen, game_state):
     """統計カードを描画する関数"""
     screen_width = screen.get_width()
-    card_width = (screen_width - 80 - 60) // 4  # 4枚のカードと余白
+    card_width = (screen_width - 80 - 40) // 3  # 3枚のカードと余白 (20px x 2)
     card_height = 120
     start_x = 40
     start_y = 40
     padding_x = 20
 
-    # カードのデータ
+    # カードのデータ (総資産、積みゲー、賃金の3要素)
     cards_data = [
         {
             "icon": "💰",
@@ -280,12 +280,6 @@ def draw_stats_cards(screen, game_state):
                 )
             ),
             "subtitle": f"購入数: {format_purchase_count(game_state.purchase_count)}個/回",
-        },
-        {
-            "icon": "⚡",
-            "title": "自動化",
-            "value": f"クリック: {game_state.auto_clicks:.1f}/秒",
-            "subtitle": f"購入: {game_state.auto_purchases:.1f}/{game_state.auto_purchase_interval:.1f}秒",
         },
     ]
 
