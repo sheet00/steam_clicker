@@ -214,13 +214,13 @@ def format_number(number):
     return f"{number:,}"
 
 
-def format_japanese_currency(number):
+def format_japanese_unit(number, unit="円"):
     """数値を日本円の単位（万、億、兆など）でフォーマットする関数"""
     is_negative = number < 0
     abs_number = abs(number)
 
     if abs_number < 10000:  # 1万未満
-        return f"{number:,}円"
+        return f"{number:,}{unit}"
 
     units = [
         (10**4, "万"),
@@ -243,13 +243,13 @@ def format_japanese_currency(number):
             formatted_number = abs_number / value
             prefix = "-" if is_negative else ""
             if formatted_number == int(formatted_number):
-                return f"{prefix}{int(formatted_number):,}{unit_name}円"
+                return f"{prefix}{int(formatted_number):,}{unit_name}{unit}"
             else:
-                return f"{prefix}{formatted_number:.1f}{unit_name}円".replace(
-                    f".0{unit_name}", unit_name
+                return f"{prefix}{formatted_number:.1f}{unit_name}{unit}".replace(
+                    f".0{unit_name}{unit}", f"{unit_name}{unit}"
                 )
 
-    return f"{number:,}円"  # 念のためのフォールバック
+    return f"{number:,}{unit}"  # 念のためのフォールバック
 
 
 def format_purchase_count(purchase_count):
@@ -274,7 +274,7 @@ def draw_stats_cards(screen, game_state):
         {
             "icon": "💼",
             "title": "賃金",
-            "value": format_japanese_currency(
+            "value": format_japanese_unit(
                 int(
                     game_state.work_unit_price
                     * (
@@ -291,7 +291,7 @@ def draw_stats_cards(screen, game_state):
         {
             "icon": "💰",
             "title": "総資産",
-            "value": format_japanese_currency(game_state.money),
+            "value": format_japanese_unit(game_state.money),
             "subtitle": "資産すべて",
         },
         {
@@ -413,7 +413,7 @@ def draw_main_buttons(screen, game_state, buttons, current_time, click_time):
 
     # ゲーム価格の表示（購入ボタンの下中央に配置）
     game_price_surface = font_nomal.render(
-        f"価格: {format_japanese_currency(int(game_state.game_price))}",
+        f"価格: {format_japanese_unit(int(game_state.game_price))}",
         True,
         TEXT_SECONDARY,
     )
@@ -606,7 +606,7 @@ def draw_upgrade_card(
     screen.blit(title_surface, (icon_x + icon_size + 20, icon_y))
 
     # 価格
-    price_text = format_japanese_currency(upgrade["cost"])
+    price_text = format_japanese_unit(upgrade["cost"])
     price_color = ACCENT_SUCCESS if is_affordable else TEXT_TERTIARY
     price_surface = font_large.render(price_text, True, price_color)
     screen.blit(price_surface, (icon_x + icon_size + 20, icon_y + 30))
@@ -719,19 +719,19 @@ def draw_upgrade_status_panel(screen, game_state):
             screen.blit(line1_surface, line1_rect)
 
             # 2行目: 配信収益
-            line2_text = f"配信収益+{format_japanese_currency(game_state.stock * game_state.gaming_pc_level * game_state.gaming_pc_income_per_game)}/秒"
+            line2_text = f"配信収益+{format_japanese_unit(game_state.stock * game_state.gaming_pc_level * game_state.gaming_pc_income_per_game)}/秒"
             line2_surface = font_small.render(line2_text, True, TEXT_SECONDARY)
             line2_rect = line2_surface.get_rect(center=(x, y + 20))
             screen.blit(line2_surface, line2_rect)
         elif i == 5:  # アーリーアクセスの場合
             # 1行目: 投資額と最大利益率
-            line1_text = f"投資額 {format_japanese_currency(game_state.total_early_access_investment)} 最大利益率 {int(game_state.max_return_percent)}%"
+            line1_text = f"投資額 {format_japanese_unit(game_state.total_early_access_investment)} 最大利益率 {int(game_state.max_return_percent)}%"
             line1_surface = font_small.render(line1_text, True, TEXT_SECONDARY)
             line1_rect = line1_surface.get_rect(center=(x, y))
             screen.blit(line1_surface, line1_rect)
 
             # 2行目: 毎秒の投資効果
-            investment_per_second_text = f"毎秒投資効果: {format_japanese_currency(game_state.early_access_investment_per_second)}/秒"
+            investment_per_second_text = f"毎秒投資効果: {format_japanese_unit(game_state.early_access_investment_per_second)}/秒"
             investment_per_second_surface = font_small.render(
                 investment_per_second_text, True, TEXT_SECONDARY
             )
@@ -835,7 +835,7 @@ def draw_work_feedback(screen, game_state, position, cold_sweat_image):
 
     earned = int(game_state.work_unit_price * efficiency_bonus)
     earned_text = font_nomal.render(
-        f"+{format_japanese_currency(earned)}", True, ACCENT_PRIMARY
+        f"+{format_japanese_unit(earned)}", True, ACCENT_PRIMARY
     )
     text_rect = earned_text.get_rect(
         midtop=(position[0], position[1] + cold_sweat_image.get_height() + 10)
