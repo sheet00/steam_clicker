@@ -590,13 +590,13 @@ def draw_upgrade_card(
     # タイトル
     display_name = upgrade["name"]
     title_surface = font_large.render(display_name, True, TEXT_PRIMARY)
-    screen.blit(title_surface, (icon_x + icon_size + 8, icon_y))
+    screen.blit(title_surface, (icon_x + icon_size + 20, icon_y))
 
     # 価格
     price_text = format_japanese_currency(upgrade["cost"])
     price_color = ACCENT_SUCCESS if is_affordable else TEXT_TERTIARY
     price_surface = font_large.render(price_text, True, price_color)
-    screen.blit(price_surface, (icon_x + icon_size + 8, icon_y + 20))
+    screen.blit(price_surface, (icon_x + icon_size + 20, icon_y + 30))
 
     # 所持数/レベル
     if index == 4:  # ゲーミングPC
@@ -607,8 +607,8 @@ def draw_upgrade_card(
         )
     else:
         count_text = f"所持: {upgrade['count']}"
-    count_surface = font_small.render(count_text, True, TEXT_SECONDARY)
-    screen.blit(count_surface, (icon_x + icon_size + 8, icon_y + 40))
+    count_surface = font_nomal.render(count_text, True, TEXT_SECONDARY)
+    screen.blit(count_surface, (icon_x + icon_size + 20, icon_y + 60))
 
     # 説明文
     desc_surface = font_small.render(upgrade["description"], True, TEXT_TERTIARY)
