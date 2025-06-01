@@ -155,6 +155,7 @@ font_large = pygame.font.Font(FONT_PATH, 20)
 font_x_large = pygame.font.Font(FONT_PATH, 32)
 
 emoji_font = pygame.font.Font("C:/Windows/Fonts/seguiemj.ttf", 20)
+emoji_font_large = pygame.font.Font("C:/Windows/Fonts/seguiemj.ttf", 32)
 
 
 # アイコン関連の設定
@@ -309,8 +310,7 @@ def draw_single_stats_card(screen, x, y, width, height, card_data):
     screen.blit(card_surface, (x, y))
 
     # アイコン
-    icon_font = pygame.font.Font("C:/Windows/Fonts/seguiemj.ttf", 32)  # 絵文字フォント
-    icon_surface = icon_font.render(card_data["icon"], True, TEXT_PRIMARY)
+    icon_surface = emoji_font_large.render(card_data["icon"], True, TEXT_PRIMARY)
     screen.blit(icon_surface, (x + 20, y + 20))
 
     # タイトル
@@ -494,7 +494,7 @@ def draw_upgrade_panel(screen, game_state, buttons, current_time, click_time):
 
     # アップグレードカードの配置設定（3列表示に変更）
     card_width = (panel_width - 100) // 3  # 3列表示（間に隙間を確保）
-    card_height = 120  # カードの高さを120pxに増やして縦幅を大きく
+    card_height = 160
     margin_top = 20
     margin_left = 20
     card_spacing_x = 20
@@ -575,7 +575,7 @@ def draw_upgrade_card(
 
     screen.blit(card_surface, (rect.x, rect.y))
 
-    icon_size = 40
+    icon_size = 120
     icon_x = rect.x + 10
     icon_y = rect.y + 10
 
@@ -583,27 +583,18 @@ def draw_upgrade_card(
         icon = pygame.transform.scale(upgrade_icons[index], (icon_size, icon_size))
         screen.blit(icon, (icon_x, icon_y))
 
-    # タイトル（フォントサイズ調整）
-    title_font = pygame.font.Font(
-        FONT_PATH, 18
-    )  # フォントサイズを大きく（変更なし、確認用）
+    # タイトル
     display_name = upgrade["name"]
-    title_surface = title_font.render(display_name, True, TEXT_PRIMARY)
+    title_surface = font_large.render(display_name, True, TEXT_PRIMARY)
     screen.blit(title_surface, (icon_x + icon_size + 8, icon_y))
 
-    # 価格（フォントサイズ調整）
-    price_font = pygame.font.Font(
-        FONT_PATH, 20
-    )  # フォントサイズを大きく（変更なし、確認用）
+    # 価格
     price_text = format_japanese_currency(upgrade["cost"])
     price_color = ACCENT_SUCCESS if is_affordable else TEXT_TERTIARY
-    price_surface = price_font.render(price_text, True, price_color)
+    price_surface = font_large.render(price_text, True, price_color)
     screen.blit(price_surface, (icon_x + icon_size + 8, icon_y + 20))
 
-    # 所持数/レベル（フォントサイズ調整）
-    count_font = pygame.font.Font(
-        FONT_PATH, 16
-    )  # フォントサイズを大きく（変更なし、確認用）
+    # 所持数/レベル
     if index == 4:  # ゲーミングPC
         count_text = (
             f"Lv.{game_state.gaming_pc_level}"
@@ -612,14 +603,11 @@ def draw_upgrade_card(
         )
     else:
         count_text = f"所持: {upgrade['count']}"
-    count_surface = count_font.render(count_text, True, TEXT_SECONDARY)
+    count_surface = font_small.render(count_text, True, TEXT_SECONDARY)
     screen.blit(count_surface, (icon_x + icon_size + 8, icon_y + 40))
 
-    # 説明文（フォントサイズ調整）
-    desc_font = pygame.font.Font(
-        FONT_PATH, 14
-    )  # フォントサイズを少し大きく（変更なし、確認用）
-    desc_surface = desc_font.render(upgrade["description"], True, TEXT_TERTIARY)
+    # 説明文
+    desc_surface = font_small.render(upgrade["description"], True, TEXT_TERTIARY)
     screen.blit(desc_surface, (rect.x + 10, rect.y + rect.height - 30))
 
 
