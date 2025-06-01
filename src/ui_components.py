@@ -1,6 +1,7 @@
 import pygame
 import os
 import random
+from game_state import GameState
 
 
 class Particle:
@@ -250,14 +251,6 @@ def format_japanese_unit(number, unit="円"):
                 )
 
     return f"{number:,}{unit}"  # 念のためのフォールバック
-
-
-def format_purchase_count(purchase_count):
-    """購入数を適切にフォーマットする関数"""
-    if purchase_count == int(purchase_count):
-        return format_number(int(purchase_count))
-    else:
-        return f"{purchase_count:.1f}".replace(".0", "")
 
 
 def draw_stats_cards(screen, game_state):
@@ -633,7 +626,7 @@ def draw_upgrade_card(
         )
 
 
-def draw_upgrade_status_panel(screen, game_state):
+def draw_upgrade_status_panel(screen, game_state: GameState):
     """アップグレード情報表示パネルを描画する関数"""
     # パネルの位置とサイズ
     panel_width = screen.get_width() - 80
@@ -676,15 +669,23 @@ def draw_upgrade_status_panel(screen, game_state):
     ]
 
     # 2行目: 具体的効果
+
+    cal_purchase_interval = game_state.auto_purchase_interval
+    if game_state.gaming_pc_level > 0:
+        reduction_percent = (
+            game_state.gaming_pc_level * game_state.gaming_pc_interval_reduction
+        )
+        cal_purchase_interval *= max(0.01, 1.0 - reduction_percent)
+
     effect_texts = [
         # 労働DX化
-        f"労働効率+{int(game_state.upgrades[0]['count'] * game_state.work_unit_up_percent)}%アップ",
+        f"賃金+{game_state.upgrades[0]['count'] * (game_state.work_unit_up_percent*100) :.2f}%アップ",
         # 同時購入
-        f"{format_purchase_count(game_state.purchase_count)}個/回",
+        f"{game_state.purchase_count:.2f}個/回",
         # 労働自動化
-        f"毎秒{game_state.auto_clicks}回クリック",
+        f"毎秒{game_state.auto_clicks:.2f}回クリック",
         # 購入自動化
-        f"{game_state.auto_purchase_interval}秒毎に{game_state.auto_purchases}回購入",
+        f"{cal_purchase_interval:.2f}秒毎に{game_state.auto_purchases:.2f}回購入",
         # ゲーミングPC
         "",  # ゲーミングPCのテキストは描画時に特別処理するので空にする
         # アーリーアクセス
@@ -735,21 +736,28 @@ def draw_upgrade_status_panel(screen, game_state):
         if i == 4:  # ゲーミングPCの場合
             # 1行目: 効率と購入間隔
             line1_text = (
-                f"労働効率+{int(game_state.gaming_pc_level * game_state.gaming_pc_efficiency_bonus * 100)}% "
-                f"購入間隔-{int(game_state.gaming_pc_level * game_state.gaming_pc_interval_reduction * 100)}%"
+                f"賃金+{game_state.gaming_pc_level * game_state.gaming_pc_efficiency_bonus * 100:.2f}% "
+                f"購入間隔-{game_state.gaming_pc_level * game_state.gaming_pc_interval_reduction * 100:.2f}%"
             )
             line1_surface = font_nomal.render(line1_text, True, TEXT_SECONDARY)
             line1_rect = line1_surface.get_rect(center=(x_center, y_effect))
             screen.blit(line1_surface, line1_rect)
 
             # 2行目: 配信収益
-            line2_text = f"配信収益+{format_japanese_unit(game_state.stock * game_state.gaming_pc_level * game_state.gaming_pc_income_per_game)}/秒"
+            # ゲーム数*PCレベル*1つあたりの単価
+            return_price = round(
+                game_state.stock
+                * game_state.gaming_pc_level
+                * game_state.gaming_pc_income_per_game,
+                2,
+            )
+            line2_text = f"配信収益+{format_japanese_unit(return_price)}/秒"
             line2_surface = font_nomal.render(line2_text, True, TEXT_SECONDARY)
             line2_rect = line2_surface.get_rect(center=(x_center, y_effect + 20))
             screen.blit(line2_surface, line2_rect)
         elif i == 5:  # アーリーアクセスの場合
             # 1行目: 投資額と最大利益率
-            line1_text = f"投資額 {format_japanese_unit(game_state.total_early_access_investment)} 最大利益率 {int(game_state.max_return_percent)}%"
+            line1_text = f"投資額 {format_japanese_unit(game_state.total_early_access_investment)} 最大利益率 {game_state.max_return_percent*100:.2f}%"
             line1_surface = font_nomal.render(line1_text, True, TEXT_SECONDARY)
             line1_rect = line1_surface.get_rect(center=(x_center, y_effect))
             screen.blit(line1_surface, line1_rect)
