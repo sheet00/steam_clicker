@@ -678,7 +678,7 @@ def draw_upgrade_status_panel(screen, game_state):
     # 2行目: 具体的効果
     effect_texts = [
         # 労働DX化
-        f"{int(game_state.upgrades[0]['count'] * game_state.work_unit_up_percent)}%アップ",
+        f"労働効率+{int(game_state.upgrades[0]['count'] * game_state.work_unit_up_percent)}%アップ",
         # 同時購入
         f"{format_purchase_count(game_state.purchase_count)}個/回",
         # 労働自動化
@@ -735,7 +735,7 @@ def draw_upgrade_status_panel(screen, game_state):
         if i == 4:  # ゲーミングPCの場合
             # 1行目: 効率と購入間隔
             line1_text = (
-                f"効率+{int(game_state.gaming_pc_level * game_state.gaming_pc_efficiency_bonus * 100)}% "
+                f"労働効率+{int(game_state.gaming_pc_level * game_state.gaming_pc_efficiency_bonus * 100)}% "
                 f"購入間隔-{int(game_state.gaming_pc_level * game_state.gaming_pc_interval_reduction * 100)}%"
             )
             line1_surface = font_nomal.render(line1_text, True, TEXT_SECONDARY)
@@ -755,7 +755,7 @@ def draw_upgrade_status_panel(screen, game_state):
             screen.blit(line1_surface, line1_rect)
 
             # 2行目: 投資効果
-            investment_per_second_text = f"投資効果: {format_japanese_unit(game_state.early_access_investment_per_second)}/秒"
+            investment_per_second_text = f"投資効果+{format_japanese_unit(game_state.early_access_investment_per_second)}/秒"
             investment_per_second_surface = font_nomal.render(
                 investment_per_second_text, True, TEXT_SECONDARY
             )
