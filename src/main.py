@@ -105,6 +105,7 @@ class GameState:
         self.last_early_access_is_negative = False  # 最後の結果がマイナスだったか
         self.last_early_access_actual_percent = 0.0  # 最後に適用された実際の収益率
         self.last_early_access_game_bonus = 0.0  # ゲーム数によるボーナス収益率
+        self.early_access_investment_per_second = 0  # 毎秒の投資効果
 
         # 値上がり率
         self.upgrade_cost_multiplier = config.get(
@@ -373,6 +374,9 @@ class GameState:
                 self.last_early_access_is_negative = is_negative
                 self.last_early_access_actual_percent = actual_return_percent
                 self.last_early_access_game_bonus = game_bonus_percent
+                self.early_access_investment_per_second = (
+                    return_amount  # 毎秒の投資効果を更新
+                )
 
         # ゲーム価格の変動処理 (1秒ごと)
         elapsed_game_price = current_time - self.last_game_price_update_time

@@ -203,7 +203,10 @@ def format_number(number):
 
 def format_japanese_currency(number):
     """数値を日本円の単位（万、億、兆など）でフォーマットする関数"""
-    if number < 10000:  # 1万未満
+    is_negative = number < 0
+    abs_number = abs(number)
+
+    if abs_number < 10000:  # 1万未満
         return f"{number:,}円"
 
     units = [
@@ -223,12 +226,13 @@ def format_japanese_currency(number):
 
     for i in range(len(units) - 1, -1, -1):
         value, unit_name = units[i]
-        if number >= value:
-            formatted_number = number / value
+        if abs_number >= value:
+            formatted_number = abs_number / value
+            prefix = "-" if is_negative else ""
             if formatted_number == int(formatted_number):
-                return f"{int(formatted_number):,}{unit_name}円"
+                return f"{prefix}{int(formatted_number):,}{unit_name}円"
             else:
-                return f"{formatted_number:.1f}{unit_name}円".replace(
+                return f"{prefix}{formatted_number:.1f}{unit_name}円".replace(
                     f".0{unit_name}", unit_name
                 )
 
@@ -660,7 +664,7 @@ def draw_upgrade_status_panel(screen, game_state):
         # ゲーミングPC (修正: 表記を統一)
         "",  # ゲーミングPCのテキストは描画時に特別処理するので空にする
         # アーリーアクセス
-        f"投資額 {format_japanese_currency(game_state.total_early_access_investment)} 最大還元率 {int(game_state.early_access_return_percent*100)}%",
+        "",  # アーリーアクセスは2行で表示するので、ここでは空にする
     ]
 
     # テキストを描画（絵文字とテキストを分離）
@@ -701,7 +705,23 @@ def draw_upgrade_status_panel(screen, game_state):
             line2_surface = font_small.render(line2_text, True, TEXT_SECONDARY)
             line2_rect = line2_surface.get_rect(center=(x, y + 20))
             screen.blit(line2_surface, line2_rect)
-        else:
+        elif i == 5:  # アーリーアクセスの場合
+            # 1行目: 投資額と最大還元率
+            line1_text = f"投資額 {format_japanese_currency(game_state.total_early_access_investment)} 最大還元率 {int(game_state.early_access_return_percent*100)}%"
+            line1_surface = font_small.render(line1_text, True, TEXT_SECONDARY)
+            line1_rect = line1_surface.get_rect(center=(x, y))
+            screen.blit(line1_surface, line1_rect)
+
+            # 2行目: 毎秒の投資効果
+            investment_per_second_text = f"毎秒投資効果: {format_japanese_currency(game_state.early_access_investment_per_second)}/秒"
+            investment_per_second_surface = font_small.render(
+                investment_per_second_text, True, TEXT_SECONDARY
+            )
+            investment_per_second_rect = investment_per_second_surface.get_rect(
+                center=(x, y + 20)
+            )
+            screen.blit(investment_per_second_surface, investment_per_second_rect)
+        else:  # その他の場合
             text_surface = font_small.render(text, True, TEXT_SECONDARY)
             text_rect = text_surface.get_rect(center=(x, y))
             screen.blit(text_surface, text_rect)
