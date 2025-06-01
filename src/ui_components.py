@@ -365,7 +365,7 @@ def draw_main_buttons(screen, game_state, buttons, current_time, click_time):
 
     # ボタンパネルの描画（中段に配置）
     panel_width = screen_width - 80  # 画面幅いっぱいを使う
-    panel_height = 180  # パネルの高さを固定
+    panel_height = 110  # パネルの高さを半分に調整
     button_panel = pygame.Rect(
         40,  # 左マージン
         180,  # 情報パネルの下 (40+120+20=180)
@@ -377,7 +377,7 @@ def draw_main_buttons(screen, game_state, buttons, current_time, click_time):
 
     # 労働ボタンと購入ボタンを横並びに配置
     button_width = (panel_width - 60) // 2  # 2つのボタンの幅（間に20pxの隙間）
-    button_height = 80  # ボタンの高さ
+    button_height = 40  # ボタンの高さを半分に調整
 
     # 労働ボタンの位置を更新
     work_button_rect.x = button_panel.x + 20
@@ -502,7 +502,7 @@ def draw_upgrade_panel(screen, game_state, buttons, current_time, click_time):
     panel_height = screen_height - 400  # 画面縦幅を大きくするため
     upgrade_panel = pygame.Rect(
         40,  # 左マージン
-        480,  # アップグレード情報パネルの下 (380 + 60 + 10)
+        560,  # アップグレード情報パネルの下
         panel_width,
         panel_height,
     )
@@ -637,9 +637,9 @@ def draw_upgrade_status_panel(screen, game_state):
     """アップグレード情報表示パネルを描画する関数"""
     # パネルの位置とサイズ
     panel_width = screen.get_width() - 80
-    panel_height = 80
+    panel_height = 250  # 2列表示に対応するため高さを調整
     panel_x = 40
-    panel_y = 380  # メインボタンの下
+    panel_y = 300  # メインボタンの下
 
     # パネルの背景
     pygame.draw.rect(
@@ -656,8 +656,14 @@ def draw_upgrade_status_panel(screen, game_state):
         border_radius=12,
     )
 
-    # 列の幅
-    col_width = panel_width // 6
+    # 列と行の設定
+    num_cols = 2
+    num_rows = 3  # 1列3要素なので、合計6要素で2列3行
+    col_width = panel_width // num_cols
+    row_height = panel_height // num_rows
+
+    # 各要素のパディング
+    item_padding_y = 10
 
     # 1行目: 基本情報
     base_texts = [
@@ -665,7 +671,7 @@ def draw_upgrade_status_panel(screen, game_state):
         "🛒 同時購入",
         "🤖 労働自動化",
         "⚡ 購入自動化",
-        "🎮 ゲーミングPC",  # 修正: ゲーミング → ゲーミングPC
+        "🎮 ゲーミングPC",
         "🚀 アーリーアクセス",
     ]
 
@@ -679,7 +685,7 @@ def draw_upgrade_status_panel(screen, game_state):
         f"毎秒{game_state.auto_clicks}回クリック",
         # 購入自動化
         f"{game_state.auto_purchase_interval}秒毎に{game_state.auto_purchases}回購入",
-        # ゲーミングPC (修正: 表記を統一)
+        # ゲーミングPC
         "",  # ゲーミングPCのテキストは描画時に特別処理するので空にする
         # アーリーアクセス
         "",  # アーリーアクセスは2行で表示するので、ここでは空にする
@@ -687,8 +693,15 @@ def draw_upgrade_status_panel(screen, game_state):
 
     # テキストを描画（絵文字とテキストを分離）
     for i, text in enumerate(base_texts):
-        x = panel_x + i * col_width + col_width // 2
-        y = panel_y + 15
+        # 2列3行の配置を計算
+        col = i // num_rows  # 0, 0, 0, 1, 1, 1
+        row = i % num_rows  # 0, 1, 2, 0, 1, 2
+
+        # 各要素の中心X座標を計算
+        x_center = panel_x + col * col_width + col_width // 2
+
+        # 各要素のY座標を計算
+        y_base = panel_y + row * row_height + item_padding_y
 
         # 絵文字とテキストを分離（最初の1文字が絵文字）
         emoji_char = text[0]
@@ -696,17 +709,28 @@ def draw_upgrade_status_panel(screen, game_state):
 
         # 絵文字部分の描画
         emoji_surface = emoji_font.render(emoji_char, True, TEXT_PRIMARY)
-        emoji_rect = emoji_surface.get_rect(midright=(x - 5, y))
+        emoji_rect = emoji_surface.get_rect(
+            midright=(x_center - 5, y_base + 10)
+        )  # 調整
         screen.blit(emoji_surface, emoji_rect)
 
         # テキスト部分の描画
-        text_surface = font_small.render(text_part, True, TEXT_PRIMARY)
-        text_rect = text_surface.get_rect(midleft=(x, y))
+        text_surface = font_nomal.render(text_part, True, TEXT_PRIMARY)
+        text_rect = text_surface.get_rect(midleft=(x_center, y_base + 10))  # 調整
         screen.blit(text_surface, text_rect)
 
     for i, text in enumerate(effect_texts):
-        x = panel_x + i * col_width + col_width // 2
-        y = panel_y + 40
+        # 2列3行の配置を計算
+        col = i // num_rows
+        row = i % num_rows
+
+        # 各要素の中心X座標を計算
+        x_center = panel_x + col * col_width + col_width // 2
+
+        # 各要素のY座標を計算
+        y_effect = (
+            panel_y + row * row_height + item_padding_y + 40
+        )  # 効果テキストのY座標
 
         if i == 4:  # ゲーミングPCの場合
             # 1行目: 効率と購入間隔
@@ -714,34 +738,34 @@ def draw_upgrade_status_panel(screen, game_state):
                 f"効率+{int(game_state.gaming_pc_level * game_state.gaming_pc_efficiency_bonus * 100)}% "
                 f"購入間隔-{int(game_state.gaming_pc_level * game_state.gaming_pc_interval_reduction * 100)}%"
             )
-            line1_surface = font_small.render(line1_text, True, TEXT_SECONDARY)
-            line1_rect = line1_surface.get_rect(center=(x, y))
+            line1_surface = font_nomal.render(line1_text, True, TEXT_SECONDARY)
+            line1_rect = line1_surface.get_rect(center=(x_center, y_effect))
             screen.blit(line1_surface, line1_rect)
 
             # 2行目: 配信収益
             line2_text = f"配信収益+{format_japanese_unit(game_state.stock * game_state.gaming_pc_level * game_state.gaming_pc_income_per_game)}/秒"
-            line2_surface = font_small.render(line2_text, True, TEXT_SECONDARY)
-            line2_rect = line2_surface.get_rect(center=(x, y + 20))
+            line2_surface = font_nomal.render(line2_text, True, TEXT_SECONDARY)
+            line2_rect = line2_surface.get_rect(center=(x_center, y_effect + 20))
             screen.blit(line2_surface, line2_rect)
         elif i == 5:  # アーリーアクセスの場合
             # 1行目: 投資額と最大利益率
             line1_text = f"投資額 {format_japanese_unit(game_state.total_early_access_investment)} 最大利益率 {int(game_state.max_return_percent)}%"
-            line1_surface = font_small.render(line1_text, True, TEXT_SECONDARY)
-            line1_rect = line1_surface.get_rect(center=(x, y))
+            line1_surface = font_nomal.render(line1_text, True, TEXT_SECONDARY)
+            line1_rect = line1_surface.get_rect(center=(x_center, y_effect))
             screen.blit(line1_surface, line1_rect)
 
-            # 2行目: 毎秒の投資効果
-            investment_per_second_text = f"毎秒投資効果: {format_japanese_unit(game_state.early_access_investment_per_second)}/秒"
-            investment_per_second_surface = font_small.render(
+            # 2行目: 投資効果
+            investment_per_second_text = f"投資効果: {format_japanese_unit(game_state.early_access_investment_per_second)}/秒"
+            investment_per_second_surface = font_nomal.render(
                 investment_per_second_text, True, TEXT_SECONDARY
             )
             investment_per_second_rect = investment_per_second_surface.get_rect(
-                center=(x, y + 20)
+                center=(x_center, y_effect + 20)
             )
             screen.blit(investment_per_second_surface, investment_per_second_rect)
         else:  # その他の場合
-            text_surface = font_small.render(text, True, TEXT_SECONDARY)
-            text_rect = text_surface.get_rect(center=(x, y))
+            text_surface = font_nomal.render(text, True, TEXT_SECONDARY)
+            text_rect = text_surface.get_rect(center=(x_center, y_effect))
             screen.blit(text_surface, text_rect)
 
 

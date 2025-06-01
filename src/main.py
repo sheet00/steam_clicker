@@ -222,10 +222,6 @@ class GameState:
                 else:
                     increase_amount = self.auto_clicks * (upgrade["effect"] / 100)
                     self.auto_clicks += increase_amount
-                # 説明文を更新
-                upgrade["description"] = (
-                    f"毎秒{int(self.auto_clicks)}回、自動的に労働ボタンをクリック"
-                )
             elif index == 3:  # 購入自動化ツール
                 # 現在の自動購入数に対して指定パーセンテージ分アップ
                 if self.auto_purchases == 0:  # 初期値が0の場合、1からスタート
@@ -233,10 +229,6 @@ class GameState:
                 else:
                     increase_amount = self.auto_purchases * (upgrade["effect"] / 100)
                     self.auto_purchases += increase_amount
-                # 説明文を更新
-                upgrade["description"] = (
-                    f"{self.auto_purchase_interval:.1f}秒ごとに{int(self.auto_purchases)}回、自動的にゲームを購入"
-                )
             elif index == 4:  # ゲーミングPC
                 if self.gaming_pc_level == 0:
                     # 初めてPCを購入した場合
@@ -253,21 +245,6 @@ class GameState:
                     self.gaming_pc_base_cost
                     * (self.upgrade_cost_multiplier**self.gaming_pc_level)
                 )
-
-                # 説明文を更新
-                income_per_sec = self.gaming_pc_level * self.gaming_pc_income_per_game
-                efficiency_bonus = int(
-                    self.gaming_pc_level * self.gaming_pc_efficiency_bonus * 100
-                )
-
-                # レベルに応じた特別ボーナスの説明を追加
-                reduction_percent = int(
-                    self.gaming_pc_level * self.gaming_pc_interval_reduction * 100
-                )
-
-                upgrade["description"] = (
-                    f"Lv.{self.gaming_pc_level}: 積みゲー×{income_per_sec}円/秒、労働効率+{efficiency_bonus}%、購入自動化間隔-{reduction_percent}%"
-                )
             elif index == 5:  # アーリーアクセス
                 # アーリーアクセスのレベルを上げる
                 self.early_access_level += 1
@@ -275,20 +252,8 @@ class GameState:
                 # 投資額を記録
                 self.total_early_access_investment += upgrade["cost"]
 
-                # 収益率を更新（レベルごとに基本収益率が加算される）- 小数点2桁で丸める
-                max_return_percent = round(
-                    self.early_access_level * self.early_access_return_percent, 2
-                )
-
-                # 保有ゲーム数によるボーナスの説明を追加
-                game_bonus_text = "（ゲーム数に応じてボーナス追加！上限なし）"
-
                 # 価格上昇
                 upgrade["cost"] = int(upgrade["cost"] * self.upgrade_cost_multiplier)
-                upgrade["description"] = (
-                    f"開発中のゲームに投資！投資額の0～{max_return_percent:.2f}%+ゲーム数ボーナスが還元 (Lv.{self.early_access_level})"
-                )
-
                 return True  # 購入成功
 
             # ゲーミングPCとアーリーアクセス以外のアップグレードは通常の価格上昇
