@@ -264,7 +264,7 @@ def draw_stats_cards(screen, game_state):
             "icon": "🎮",
             "title": "積みゲー",
             "value": f"{format_number(game_state.stock)}個",
-            "subtitle": f"価格: {format_japanese_currency(int(game_state.game_price))}/個",
+            "subtitle": "",
         },
         {
             "icon": "💼",
@@ -281,7 +281,7 @@ def draw_stats_cards(screen, game_state):
                     )
                 )
             ),
-            "subtitle": f"購入数: {format_purchase_count(game_state.purchase_count)}個/回",
+            "subtitle": "",
         },
     ]
 
@@ -578,8 +578,7 @@ def draw_upgrade_card(
 
     screen.blit(card_surface, (rect.x, rect.y))
 
-    # アイコン（サイズを小さく）
-    icon_size = 30  # 40pxから30pxに縮小
+    icon_size = 40
     icon_x = rect.x + 10
     icon_y = rect.y + 10
 
@@ -588,21 +587,20 @@ def draw_upgrade_card(
         screen.blit(icon, (icon_x, icon_y))
 
     # タイトル（フォントサイズ調整）
-    title_font = pygame.font.Font(FONT_PATH, 12)  # 14pxから12pxに縮小
-    # ゲーミングPCの場合は名称を統一
-    display_name = "ゲーミングPC" if index == 4 else upgrade["name"]
+    title_font = pygame.font.Font(FONT_PATH, 14)
+    display_name = upgrade["name"]
     title_surface = title_font.render(display_name, True, TEXT_PRIMARY)
     screen.blit(title_surface, (icon_x + icon_size + 8, icon_y))
 
     # 価格（フォントサイズ調整）
-    price_font = pygame.font.Font(FONT_PATH, 14)  # 16pxから14pxに縮小
+    price_font = pygame.font.Font(FONT_PATH, 16)
     price_text = format_japanese_currency(upgrade["cost"])
     price_color = ACCENT_SUCCESS if is_affordable else TEXT_TERTIARY
     price_surface = price_font.render(price_text, True, price_color)
     screen.blit(price_surface, (icon_x + icon_size + 8, icon_y + 20))
 
     # 所持数/レベル（フォントサイズ調整）
-    count_font = pygame.font.Font(FONT_PATH, 10)  # 12pxから10pxに縮小
+    count_font = pygame.font.Font(FONT_PATH, 12)
     if index == 4:  # ゲーミングPC
         count_text = (
             f"Lv.{game_state.gaming_pc_level}"
@@ -615,9 +613,9 @@ def draw_upgrade_card(
     screen.blit(count_surface, (icon_x + icon_size + 8, icon_y + 40))
 
     # 説明文（フォントサイズ調整）
-    desc_font = pygame.font.Font(FONT_PATH, 8)  # 10pxから8pxに縮小
+    desc_font = pygame.font.Font(FONT_PATH, 12)
     desc_surface = desc_font.render(upgrade["description"], True, TEXT_TERTIARY)
-    screen.blit(desc_surface, (rect.x + 10, rect.y + rect.height - 15))  # 位置調整
+    screen.blit(desc_surface, (rect.x + 10, rect.y + rect.height - 30))
 
 
 def draw_upgrade_status_panel(screen, game_state):

@@ -14,8 +14,8 @@ from config_loader import load_env_file
 import pygame.gfxdraw  # グラスモーフィズム効果のために追加
 
 # 画面設定
-WINDOW_WIDTH = 1200  # 画面幅を調整
-WINDOW_HEIGHT = 800  # 画面高さを調整
+WINDOW_WIDTH = 1480  # 画面幅を調整
+WINDOW_HEIGHT = 1000  # 画面高さを調整
 
 # 色の定義 (ui_components.pyで定義されているため削除)
 # WHITE = (255, 255, 255)
@@ -150,14 +150,14 @@ class GameState:
                 "cost": self.gaming_pc_base_cost,
                 "effect": self.gaming_pc_level,  # 現在のPCレベル
                 "count": 0,
-                "description": f"積みゲーをプレイして配信！ レベルアップで収益UP",
+                "description": "積みゲーをプレイして配信！ レベルアップで収益UP",
             },
             {
                 "name": "アーリーアクセス",
                 "cost": self.early_access_cost,
                 "effect": self.early_access_return_percent,  # 基本の資産増加率（%）
                 "count": 0,
-                "description": f"開発中のゲームに投資！投資額が変動して還元されます (Lv.{self.early_access_level})",
+                "description": f"開発中のゲームに投資！投資額が変動して還元されます",
             },
         ]
 
