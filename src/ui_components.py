@@ -300,25 +300,16 @@ def draw_single_stats_card(screen, x, y, width, height, card_data):
     # カード背景（グラスモーフィズム）
     card_surface = pygame.Surface((width, height), pygame.SRCALPHA)
 
-    # 背景色（半透明）
+    # 背景色（単一色）
     pygame.draw.rect(
         card_surface,
-        (*BACKGROUND_SECONDARY, 180),
+        BACKGROUND_SECONDARY,
         (0, 0, width, height),
         border_radius=16,
     )
 
     # 境界線
-    pygame.draw.rect(
-        card_surface, (*GRAY_300, 128), (0, 0, width, height), 2, border_radius=16
-    )
-
-    # シャドウ効果（簡易版）
-    shadow_surface = pygame.Surface((width, height), pygame.SRCALPHA)
-    pygame.draw.rect(
-        shadow_surface, (0, 0, 0, 50), (5, 5, width - 10, height - 10), border_radius=16
-    )
-    screen.blit(shadow_surface, (x + 5, y + 5))  # 影を少しずらして描画
+    pygame.draw.rect(card_surface, GRAY_300, (0, 0, width, height), 2, border_radius=16)
 
     screen.blit(card_surface, (x, y))
 
@@ -480,11 +471,6 @@ def draw_modern_button(screen, rect, text, button_type, size, is_clicked):
     # ボタン背景
     pygame.draw.rect(screen, bg_color, rect, border_radius=12)
 
-    # シャドウ効果（簡易版）
-    shadow_rect = pygame.Rect(rect.x, rect.y + 2, rect.width, rect.height)
-    shadow_color = (*bg_color[:3], 100)  # 半透明
-    pygame.draw.rect(screen, shadow_color, shadow_rect, border_radius=12)
-
     # テキスト
     font = pygame.font.Font(FONT_PATH, size_config["font_size"])
     text_surface = font.render(text, True, type_config["text_color"])
@@ -593,16 +579,6 @@ def draw_upgrade_card(
     pygame.draw.rect(
         card_surface, border_color, (0, 0, rect.width, rect.height), 2, border_radius=16
     )
-
-    # シャドウ効果（簡易版）
-    shadow_surface = pygame.Surface((rect.width, rect.height), pygame.SRCALPHA)
-    pygame.draw.rect(
-        shadow_surface,
-        (0, 0, 0, 50),
-        (5, 5, rect.width - 10, rect.height - 10),
-        border_radius=16,
-    )
-    screen.blit(shadow_surface, (rect.x + 5, rect.y + 5))  # 影を少しずらして描画
 
     screen.blit(card_surface, (rect.x, rect.y))
 
