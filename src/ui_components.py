@@ -353,7 +353,7 @@ def draw_single_stats_card(screen, x, y, width, height, card_data):
 
 
 def draw_main_buttons(screen, game_state, buttons, current_time, click_time):
-    """メインボタン（労働、購入）を描画する関数"""
+    """メインボタン（労働、購入）を描画する関数（中段に配置）"""
     screen_width = screen.get_width()
     screen_height = screen.get_height()
     animation_duration = 0.4
@@ -362,17 +362,35 @@ def draw_main_buttons(screen, game_state, buttons, current_time, click_time):
     work_button_rect = buttons.get("work_button")
     buy_button_rect = buttons.get("buy_button")
 
-    # ボタンパネルの描画
-    # 画面中央に配置
-    panel_width = screen_width // 2 - 80
-    panel_height = screen_height - 300
+    # ボタンパネルの描画（中段に配置）
+    panel_width = screen_width - 80  # 画面幅いっぱいを使う
+    panel_height = 180  # パネルの高さを固定
     button_panel = pygame.Rect(
-        screen_width // 2 - panel_width // 2, 260, panel_width, panel_height
+        40,  # 左マージン
+        180,  # 情報パネルの下 (40+120+20=180)
+        panel_width,
+        panel_height,
     )
     pygame.draw.rect(screen, BACKGROUND_TERTIARY, button_panel, border_radius=16)
     pygame.draw.rect(screen, GRAY_200, button_panel, 2, border_radius=16)
 
-    # 労働ボタン
+    # 労働ボタンと購入ボタンを横並びに配置
+    button_width = (panel_width - 60) // 2  # 2つのボタンの幅（間に20pxの隙間）
+    button_height = 80  # ボタンの高さ
+
+    # 労働ボタンの位置を更新
+    work_button_rect.x = button_panel.x + 20
+    work_button_rect.y = button_panel.y + (panel_height - button_height) // 2
+    work_button_rect.width = button_width
+    work_button_rect.height = button_height
+
+    # 購入ボタンの位置を更新
+    buy_button_rect.x = work_button_rect.right + 20
+    buy_button_rect.y = work_button_rect.y
+    buy_button_rect.width = button_width
+    buy_button_rect.height = button_height
+
+    # 労働ボタンを描画
     draw_modern_button(
         screen,
         work_button_rect,
@@ -382,7 +400,7 @@ def draw_main_buttons(screen, game_state, buttons, current_time, click_time):
         clicked_button == "work" and current_time - click_time < animation_duration,
     )
 
-    # 購入ボタン
+    # 購入ボタンを描画
     draw_modern_button(
         screen,
         buy_button_rect,
@@ -392,7 +410,7 @@ def draw_main_buttons(screen, game_state, buttons, current_time, click_time):
         clicked_button == "buy" and current_time - click_time < animation_duration,
     )
 
-    # ゲーム価格の表示
+    # ゲーム価格の表示（購入ボタンの下中央に配置）
     game_price_surface = button_font.render(
         f"価格: {format_japanese_currency(int(game_state.game_price))}",
         True,
@@ -471,7 +489,7 @@ def draw_modern_button(screen, rect, text, button_type, size, is_clicked):
 
 
 def draw_upgrade_panel(screen, game_state, buttons, current_time, click_time):
-    """アップグレードパネルとカードを描画する関数"""
+    """アップグレードパネルとカードを描画する関数（下段に配置）"""
     screen_width = screen.get_width()
     screen_height = screen.get_height()
     animation_duration = 0.4
@@ -479,28 +497,40 @@ def draw_upgrade_panel(screen, game_state, buttons, current_time, click_time):
     clicked_upgrade = buttons.get("clicked_upgrade")
     upgrade_buttons_rects = buttons.get("upgrade_buttons", [])
 
-    # アップグレードパネルの描画
-    panel_width = screen_width // 2 - 80
-    panel_height = screen_height - 300
-    upgrade_panel = pygame.Rect(screen_width // 2 + 40, 260, panel_width, panel_height)
+    # アップグレードパネルの描画（下段に配置）
+    panel_width = screen_width - 80
+    panel_height = screen_height - 400  # 上にスペースを確保
+    upgrade_panel = pygame.Rect(
+        40,  # 左マージン
+        380,  # メインボタンの下 (180+180+20=380)
+        panel_width,
+        panel_height,
+    )
     pygame.draw.rect(screen, BACKGROUND_TERTIARY, upgrade_panel, border_radius=16)
     pygame.draw.rect(screen, GRAY_200, upgrade_panel, 2, border_radius=16)
 
-    # アップグレードカードの配置設定
-    card_width = (panel_width - 60) // 2  # 2列表示
-    card_height = 150
-    margin_top = 30
-    margin_left = 30
+    # アップグレードカードの配置設定（4列表示に変更）
+    card_width = (panel_width - 100) // 4  # 4列表示（間に隙間を確保）
+    card_height = 120  # カードの高さを少し縮小
+    margin_top = 20
+    margin_left = 20
     card_spacing_x = 20
     card_spacing_y = 20
 
-    # 各アップグレードカードの描画
-    for i, upgrade_rect in enumerate(upgrade_buttons_rects):
-        row = i // 2
-        col = i % 2
+    # アップグレードボタンのrectを再計算
+    upgrade_buttons_rects = []
+    for i in range(len(game_state.upgrades)):
+        row = i // 4  # 4列なので行計算を変更
+        col = i % 4  # 4列なので列計算を変更
         x = upgrade_panel.left + margin_left + col * (card_width + card_spacing_x)
         y = upgrade_panel.top + margin_top + row * (card_height + card_spacing_y)
+        rect = pygame.Rect(x, y, card_width, card_height)
+        upgrade_buttons_rects.append(rect)
 
+    buttons["upgrade_buttons"] = upgrade_buttons_rects
+
+    # 各アップグレードカードの描画
+    for i, upgrade_rect in enumerate(upgrade_buttons_rects):
         draw_upgrade_card(
             screen,
             game_state,
@@ -515,7 +545,7 @@ def draw_upgrade_panel(screen, game_state, buttons, current_time, click_time):
 def draw_upgrade_card(
     screen, game_state, rect, index, clicked_upgrade, current_time, click_time
 ):
-    """単一のアップグレードカードを描画する関数（グラスモーフィズム風）"""
+    """単一のアップグレードカードを描画する関数（新しいレイアウト用に調整）"""
     animation_duration = 0.4
     upgrade = game_state.upgrades[index]
 
@@ -572,29 +602,29 @@ def draw_upgrade_card(
 
     screen.blit(card_surface, (rect.x, rect.y))
 
-    # アイコン
-    icon_size = 48
-    icon_x = rect.x + 16
-    icon_y = rect.y + 16
+    # アイコン（サイズを小さく）
+    icon_size = 40
+    icon_x = rect.x + 10
+    icon_y = rect.y + 10
 
     if index < len(upgrade_icons):
         icon = pygame.transform.scale(upgrade_icons[index], (icon_size, icon_size))
         screen.blit(icon, (icon_x, icon_y))
 
-    # タイトル
-    title_font = pygame.font.Font(FONT_PATH, 16)
+    # タイトル（フォントサイズ調整）
+    title_font = pygame.font.Font(FONT_PATH, 14)
     title_surface = title_font.render(upgrade["name"], True, TEXT_PRIMARY)
-    screen.blit(title_surface, (icon_x + icon_size + 12, icon_y))
+    screen.blit(title_surface, (icon_x + icon_size + 8, icon_y))
 
-    # 価格
-    price_font = pygame.font.Font(FONT_PATH, 18)
+    # 価格（フォントサイズ調整）
+    price_font = pygame.font.Font(FONT_PATH, 16)
     price_text = format_japanese_currency(upgrade["cost"])
     price_color = ACCENT_SUCCESS if is_affordable else TEXT_TERTIARY
     price_surface = price_font.render(price_text, True, price_color)
-    screen.blit(price_surface, (icon_x + icon_size + 12, icon_y + 24))
+    screen.blit(price_surface, (icon_x + icon_size + 8, icon_y + 20))
 
-    # 所持数/レベル
-    count_font = pygame.font.Font(FONT_PATH, 14)
+    # 所持数/レベル（フォントサイズ調整）
+    count_font = pygame.font.Font(FONT_PATH, 12)
     if index == 4:  # ゲーミングPC
         count_text = (
             f"Lv.{game_state.gaming_pc_level}"
@@ -604,12 +634,12 @@ def draw_upgrade_card(
     else:
         count_text = f"所持: {upgrade['count']}"
     count_surface = count_font.render(count_text, True, TEXT_SECONDARY)
-    screen.blit(count_surface, (icon_x + icon_size + 12, icon_y + 48))
+    screen.blit(count_surface, (icon_x + icon_size + 8, icon_y + 40))
 
-    # 説明文
-    desc_font = pygame.font.Font(FONT_PATH, 12)
+    # 説明文（フォントサイズ調整）
+    desc_font = pygame.font.Font(FONT_PATH, 10)
     desc_surface = desc_font.render(upgrade["description"], True, TEXT_TERTIARY)
-    screen.blit(desc_surface, (rect.x + 16, rect.y + rect.height - 32))
+    screen.blit(desc_surface, (rect.x + 10, rect.y + rect.height - 20))
 
 
 # パーティクルシステムを初期化
@@ -766,6 +796,19 @@ def draw_buttons(screen, game_state, buttons, yum_image, cold_sweat_image):
 
     # クリック時のフィードバックを描画
     draw_click_feedback(screen, game_state, buttons, yum_image, cold_sweat_image)
+
+    # リセットボタンの位置をアップグレードパネルの下に設定
+    reset_button_rect = buttons.get("reset_button")
+    if reset_button_rect is None:
+        reset_button_rect = pygame.Rect(0, 0, 100, 40)
+        buttons["reset_button"] = reset_button_rect
+
+    # アップグレードパネルの位置とサイズからリセットボタンの位置を計算
+    upgrade_panel_height = screen.get_height() - 400  # draw_upgrade_panelで設定した高さ
+    reset_button_rect.x = screen.get_width() - 120  # 右から120pxの位置
+    reset_button_rect.y = 380 + upgrade_panel_height + 20  # アップグレードパネルの下
+    reset_button_rect.width = 100
+    reset_button_rect.height = 40
 
     # リセットボタンを描画
     draw_reset_button(screen, buttons)
