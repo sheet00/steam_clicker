@@ -20,15 +20,28 @@ class Particle:
         self.alpha = max(0, int(255 * (self.lifespan / 0.5)))  # 0.5秒で消えるように調整
 
     def draw(self, screen):
-        s = pygame.Surface((self.radius * 2, self.radius * 2), pygame.SRCALPHA)
-        # print(f"Particle color: {self.color}, type: {type(self.color)}")  # デバッグ用
-        pygame.draw.circle(
-            s,
-            (255, 0, 0),
-            (self.radius, self.radius),
-            self.radius,
+        # パーティクルを直接画面に描画（より軽量）
+        # アルファ値を適用するために、描画前に色を調整
+        current_color = self.color
+        # 色がタプルであることを確認し、アルファ値を追加
+        if isinstance(current_color, tuple) and len(current_color) == 3:
+            # アルファ値を適用した新しい色を作成
+            adjusted_color = (
+                current_color[0],
+                current_color[1],
+                current_color[2],
+                self.alpha,
+            )
+        else:
+            # 不明な形式の場合はデフォルト色とアルファ値を使用
+            adjusted_color = (255, 255, 255, self.alpha)  # Fallback to white with alpha
+
+        pygame.gfxdraw.aacircle(
+            screen, int(self.x), int(self.y), int(self.radius), adjusted_color
         )
-        screen.blit(s, (self.x - self.radius, self.y - self.radius))
+        pygame.gfxdraw.filled_circle(
+            screen, int(self.x), int(self.y), int(self.radius), adjusted_color
+        )
 
 
 class ParticleSystem:

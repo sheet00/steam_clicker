@@ -302,8 +302,14 @@ class GameState:
         elapsed = current_time - self.last_auto_update
         if elapsed >= 1.0:  # 1秒以上経過していたら
             # 自動クリック回数分だけ労働ボタンをクリックした効果を得る
-            for _ in range(round(self.auto_clicks)):
-                self.click_work()
+            # click_work()のロジックを直接ここに展開し、moneyに直接加算
+            efficiency_bonus = 1.0
+            if self.gaming_pc_level > 0:
+                efficiency_bonus = 1.0 + (
+                    self.gaming_pc_level * self.gaming_pc_efficiency_bonus
+                )
+            earned_per_click = int(self.work_unit_price * efficiency_bonus)
+            self.money += earned_per_click * round(self.auto_clicks)
             self.last_auto_update = current_time
 
         # 購入自動化の処理
@@ -320,8 +326,26 @@ class GameState:
 
         if elapsed_purchase >= auto_purchase_interval:  # 設定した間隔以上経過していたら
             # 購入自動化回数分だけゲームを購入
-            for _ in range(round(self.auto_purchases)):
-                self.buy_game()  # 購入できない場合は何も起きない
+            # buy_game()のロジックを直接ここに展開し、stockとmoneyに直接加算
+            game_price_int = int(self.game_price)
+            max_purchase_per_auto = round(self.purchase_count)
+
+            # 買える最大数を計算
+            affordable_count = 0
+            if game_price_int > 0:
+                affordable_count = max(0, self.money // game_price_int)
+
+            # 実際に購入する数を決定
+            actual_purchase_this_interval = min(
+                affordable_count, max_purchase_per_auto * round(self.auto_purchases)
+            )
+
+            if actual_purchase_this_interval > 0:
+                total_cost_this_interval = (
+                    game_price_int * actual_purchase_this_interval
+                )
+                self.money -= total_cost_this_interval
+                self.stock += actual_purchase_this_interval
             self.last_auto_purchase = current_time
 
         # ゲーミングPCからの収入処理
