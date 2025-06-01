@@ -857,11 +857,15 @@ def draw_buttons(screen, game_state, buttons, yum_image, cold_sweat_image):
         buttons["reset_button"] = reset_button_rect
 
     # アップグレードパネルの位置とサイズからリセットボタンの位置を計算
-    upgrade_panel_height = screen.get_height() - 400  # draw_upgrade_panelで設定した高さ
-    reset_button_rect.x = screen.get_width() - 120  # 右から120pxの位置
-    reset_button_rect.y = 380 + upgrade_panel_height + 20  # アップグレードパネルの下
+    # リセットボタンの位置を画面右下に設定
     reset_button_rect.width = 100
     reset_button_rect.height = 40
+    reset_button_rect.x = (
+        screen.get_width() - reset_button_rect.width - 20
+    )  # 右端から20px
+    reset_button_rect.y = (
+        screen.get_height() - reset_button_rect.height - 20
+    )  # 下端から20px
 
     # リセットボタンを描画
     draw_reset_button(screen, buttons)
@@ -884,9 +888,9 @@ def draw_reset_button(screen, buttons):
         color = ACCENT_ERROR  # クリック時の色
     elif is_hover:
         color = (
-            ACCENT_ERROR[0] + 20,
-            ACCENT_ERROR[1] - 20,
-            ACCENT_ERROR[2] - 20,
+            min(255, ACCENT_ERROR[0] + 20),
+            max(0, ACCENT_ERROR[1] - 20),
+            max(0, ACCENT_ERROR[2] - 20),
         )  # ホバー時の色を少し明るく
     else:
         color = ACCENT_ERROR  # 通常の色
