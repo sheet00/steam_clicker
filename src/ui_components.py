@@ -314,11 +314,11 @@ def draw_single_stats_card(screen, x, y, width, height, card_data):
     screen.blit(icon_surface, (x + 20, y + 20))
 
     # タイトル
-    title_surface = font_nomal.render(card_data["title"], True, TEXT_SECONDARY)
-    screen.blit(title_surface, (x + 20, y + 60))
+    title_surface = font_x_large.render(card_data["title"], True, TEXT_SECONDARY)
+    screen.blit(title_surface, (x + 80, y + 20))
 
     # 値
-    value_surface = font_nomal.render(card_data["value"], True, TEXT_PRIMARY)
+    value_surface = font_large.render(card_data["value"], True, TEXT_PRIMARY)
     screen.blit(value_surface, (x + 20, y + 80))
 
     # サブタイトル
