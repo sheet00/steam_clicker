@@ -180,9 +180,9 @@ def load_upgrade_icons():
     # 各アイコンのファイル名を直接指定
     icon_files = [
         "01_kabu_chart_woman.png",
-        "02_shopping_omiyage_man.png",
         "03_ai_character01_smile.png",
         "04_shopping_cart.png",
+        "02_shopping_omiyage_man.png",
         "05_computer_game_gaming_computer.png",
         "06_game_gamen.png",
     ]
@@ -661,9 +661,9 @@ def draw_upgrade_status_panel(screen, game_state: GameState):
     # 1行目: 基本情報
     base_texts = [
         "💼 労働DX化",
-        "🛒 同時購入",
         "🤖 労働自動化",
         "⚡ 購入自動化",
+        "🛒 同時購入",
         "🎮 ゲーミングPC",
         "🚀 アーリーアクセス",
     ]
@@ -680,12 +680,12 @@ def draw_upgrade_status_panel(screen, game_state: GameState):
     effect_texts = [
         # 労働DX化
         f"賃金+{game_state.upgrades[0]['count'] * (game_state.work_unit_up_percent*100) :.2f}%アップ",
-        # 同時購入
-        f"{game_state.purchase_count:.2f}個/回",
         # 労働自動化
         f"毎秒{game_state.auto_clicks:.2f}回クリック",
         # 購入自動化
         f"{cal_purchase_interval:.2f}秒毎に{game_state.auto_purchases:.2f}回購入",
+        # 同時購入
+        f"{game_state.purchase_count:.2f}個/回",
         # ゲーミングPC
         "",  # ゲーミングPCのテキストは描画時に特別処理するので空にする
         # アーリーアクセス
@@ -763,7 +763,7 @@ def draw_upgrade_status_panel(screen, game_state: GameState):
             screen.blit(line1_surface, line1_rect)
 
             # 2行目: 投資効果
-            investment_per_second_text = f"投資効果+{format_japanese_unit(game_state.early_access_investment_per_second)}/秒"
+            investment_per_second_text = f"投資効果+{format_japanese_unit(game_state.early_access_investment_per_second)}/{game_state.early_access_interval}秒"
             investment_per_second_surface = font_nomal.render(
                 investment_per_second_text, True, TEXT_SECONDARY
             )
