@@ -149,12 +149,11 @@ pygame.init()
 FONT_PATH = "C:/Windows/Fonts/meiryo.ttc"  # または "fonts/Inter-Regular.ttf" など
 
 
-font = pygame.font.Font(FONT_PATH, 32)  # heading
-button_font = pygame.font.Font(FONT_PATH, 16)  # medium body
-title_font = pygame.font.Font(FONT_PATH, 24)  # subheading
-large_font = pygame.font.Font(FONT_PATH, 20)  # large body
-small_font = pygame.font.Font(FONT_PATH, 12)  # small body (upgrade description)
-upgrade_font = pygame.font.Font(FONT_PATH, 14)  # caption (upgrade name and price)
+font_small = pygame.font.Font(FONT_PATH, 14)
+font_nomal = pygame.font.Font(FONT_PATH, 16)
+font_large = pygame.font.Font(FONT_PATH, 20)
+font_x_large = pygame.font.Font(FONT_PATH, 32)
+
 emoji_font = pygame.font.Font("C:/Windows/Fonts/seguiemj.ttf", 20)
 
 
@@ -315,18 +314,16 @@ def draw_single_stats_card(screen, x, y, width, height, card_data):
     screen.blit(icon_surface, (x + 20, y + 20))
 
     # タイトル
-    title_font = pygame.font.Font(FONT_PATH, 14)
-    title_surface = title_font.render(card_data["title"], True, TEXT_SECONDARY)
+    title_surface = font_nomal.render(card_data["title"], True, TEXT_SECONDARY)
     screen.blit(title_surface, (x + 20, y + 60))
 
     # 値
-    value_font = pygame.font.Font(FONT_PATH, 24)
-    value_surface = value_font.render(card_data["value"], True, TEXT_PRIMARY)
+    value_surface = font_nomal.render(card_data["value"], True, TEXT_PRIMARY)
     screen.blit(value_surface, (x + 20, y + 80))
 
     # サブタイトル
     if card_data["subtitle"]:
-        subtitle_font = pygame.font.Font(FONT_PATH, 12)
+        subtitle_font = font_small
         subtitle_surface = subtitle_font.render(
             card_data["subtitle"], True, TEXT_TERTIARY
         )
@@ -398,7 +395,7 @@ def draw_main_buttons(screen, game_state, buttons, current_time, click_time):
     )
 
     # ゲーム価格の表示（購入ボタンの下中央に配置）
-    game_price_surface = button_font.render(
+    game_price_surface = font_nomal.render(
         f"価格: {format_japanese_currency(int(game_state.game_price))}",
         True,
         TEXT_SECONDARY,
@@ -468,7 +465,7 @@ def draw_modern_button(screen, rect, text, button_type, size, is_clicked):
     pygame.draw.rect(screen, bg_color, rect, border_radius=12)
 
     # テキスト
-    font = pygame.font.Font(FONT_PATH, size_config["font_size"])
+    font = {14: font_nomal, 16: font_nomal, 18: font_nomal}[size_config["font_size"]]
     text_surface = font.render(text, True, type_config["text_color"])
     text_rect = text_surface.get_rect(center=rect.center)
     screen.blit(text_surface, text_rect)
@@ -485,7 +482,7 @@ def draw_upgrade_panel(screen, game_state, buttons, current_time, click_time):
 
     # アップグレードパネルの描画（下段に配置） - アップグレード情報パネルの下に配置
     panel_width = screen_width - 80
-    panel_height = screen_height - 500  # 上にスペースを確保
+    panel_height = screen_height - 400  # 画面縦幅を大きくするため
     upgrade_panel = pygame.Rect(
         40,  # 左マージン
         450,  # アップグレード情報パネルの下 (380 + 60 + 10)
@@ -495,9 +492,9 @@ def draw_upgrade_panel(screen, game_state, buttons, current_time, click_time):
     pygame.draw.rect(screen, BACKGROUND_TERTIARY, upgrade_panel, border_radius=16)
     pygame.draw.rect(screen, GRAY_200, upgrade_panel, 2, border_radius=16)
 
-    # アップグレードカードの配置設定（4列表示に変更）
-    card_width = (panel_width - 100) // 4  # 4列表示（間に隙間を確保）
-    card_height = 100  # カードの高さを100pxに縮小
+    # アップグレードカードの配置設定（3列表示に変更）
+    card_width = (panel_width - 100) // 3  # 3列表示（間に隙間を確保）
+    card_height = 120  # カードの高さを120pxに増やして縦幅を大きく
     margin_top = 20
     margin_left = 20
     card_spacing_x = 20
@@ -506,8 +503,8 @@ def draw_upgrade_panel(screen, game_state, buttons, current_time, click_time):
     # アップグレードボタンのrectを再計算
     upgrade_buttons_rects = []
     for i in range(len(game_state.upgrades)):
-        row = i // 4  # 4列なので行計算を変更
-        col = i % 4  # 4列なので列計算を変更
+        row = i // 3  # 3列なので行計算を変更
+        col = i % 3  # 3列なので列計算を変更
         x = upgrade_panel.left + margin_left + col * (card_width + card_spacing_x)
         y = upgrade_panel.top + margin_top + row * (card_height + card_spacing_y)
         rect = pygame.Rect(x, y, card_width, card_height)
@@ -587,20 +584,26 @@ def draw_upgrade_card(
         screen.blit(icon, (icon_x, icon_y))
 
     # タイトル（フォントサイズ調整）
-    title_font = pygame.font.Font(FONT_PATH, 14)
+    title_font = pygame.font.Font(
+        FONT_PATH, 18
+    )  # フォントサイズを大きく（変更なし、確認用）
     display_name = upgrade["name"]
     title_surface = title_font.render(display_name, True, TEXT_PRIMARY)
     screen.blit(title_surface, (icon_x + icon_size + 8, icon_y))
 
     # 価格（フォントサイズ調整）
-    price_font = pygame.font.Font(FONT_PATH, 16)
+    price_font = pygame.font.Font(
+        FONT_PATH, 20
+    )  # フォントサイズを大きく（変更なし、確認用）
     price_text = format_japanese_currency(upgrade["cost"])
     price_color = ACCENT_SUCCESS if is_affordable else TEXT_TERTIARY
     price_surface = price_font.render(price_text, True, price_color)
     screen.blit(price_surface, (icon_x + icon_size + 8, icon_y + 20))
 
     # 所持数/レベル（フォントサイズ調整）
-    count_font = pygame.font.Font(FONT_PATH, 12)
+    count_font = pygame.font.Font(
+        FONT_PATH, 16
+    )  # フォントサイズを大きく（変更なし、確認用）
     if index == 4:  # ゲーミングPC
         count_text = (
             f"Lv.{game_state.gaming_pc_level}"
@@ -613,7 +616,9 @@ def draw_upgrade_card(
     screen.blit(count_surface, (icon_x + icon_size + 8, icon_y + 40))
 
     # 説明文（フォントサイズ調整）
-    desc_font = pygame.font.Font(FONT_PATH, 12)
+    desc_font = pygame.font.Font(
+        FONT_PATH, 14
+    )  # フォントサイズを少し大きく（変更なし、確認用）
     desc_surface = desc_font.render(upgrade["description"], True, TEXT_TERTIARY)
     screen.blit(desc_surface, (rect.x + 10, rect.y + rect.height - 30))
 
@@ -686,14 +691,14 @@ def draw_upgrade_status_panel(screen, game_state):
         screen.blit(emoji_surface, emoji_rect)
 
         # テキスト部分の描画
-        text_surface = small_font.render(text_part, True, TEXT_PRIMARY)
+        text_surface = font_small.render(text_part, True, TEXT_PRIMARY)
         text_rect = text_surface.get_rect(midleft=(x, y))
         screen.blit(text_surface, text_rect)
 
     for i, text in enumerate(effect_texts):
         x = panel_x + i * col_width + col_width // 2
         y = panel_y + 35
-        text_surface = small_font.render(text, True, TEXT_SECONDARY)
+        text_surface = font_small.render(text, True, TEXT_SECONDARY)
         text_rect = text_surface.get_rect(center=(x, y))
         screen.blit(text_surface, text_rect)
 
@@ -760,7 +765,7 @@ def draw_buy_feedback(screen, game_state, position, yum_image, buttons):
 
     # 購入成功メッセージを表示
     purchased_count = buttons.get("purchased_count", 1)  # デフォルトは1
-    success_text = button_font.render(
+    success_text = font_nomal.render(
         f"ゲームを{purchased_count}個購入したよ！", True, ACCENT_SUCCESS
     )
     text_rect = success_text.get_rect(
@@ -787,7 +792,7 @@ def draw_work_feedback(screen, game_state, position, cold_sweat_image):
         )
 
     earned = int(game_state.work_unit_price * efficiency_bonus)
-    earned_text = button_font.render(
+    earned_text = font_nomal.render(
         f"+{format_japanese_currency(earned)}", True, ACCENT_PRIMARY
     )
     text_rect = earned_text.get_rect(
@@ -797,7 +802,7 @@ def draw_work_feedback(screen, game_state, position, cold_sweat_image):
 
     # 高額報酬時の追加メッセージ
     if earned >= 1000:
-        bonus_text = small_font.render("がんばったね！", True, ACCENT_WARNING)
+        bonus_text = font_small.render("がんばったね！", True, ACCENT_WARNING)
         bonus_rect = bonus_text.get_rect(midtop=(position[0], text_rect.bottom + 5))
         screen.blit(bonus_text, bonus_rect)
 
@@ -823,7 +828,7 @@ def draw_upgrade_feedback(screen, game_state, position, upgrade_index):
     else:
         message = f"{upgrade['name']}を購入したよ！"
 
-    upgrade_text = button_font.render(message, True, TEXT_SECONDARY)
+    upgrade_text = font_nomal.render(message, True, TEXT_SECONDARY)
     upgrade_rect = upgrade_text.get_rect(midtop=(position[0], position[1] + 10))
     screen.blit(upgrade_text, upgrade_rect)
 
@@ -903,7 +908,7 @@ def draw_reset_button(screen, buttons):
     pygame.draw.rect(screen, GRAY_600, reset_button_rect, 2, border_radius=8)
 
     # テキストを描画
-    reset_text = small_font.render("リセット", True, TEXT_INVERSE)
+    reset_text = font_small.render("リセット", True, TEXT_INVERSE)
     text_rect = reset_text.get_rect(center=reset_button_rect.center)
     screen.blit(reset_text, text_rect)
 
@@ -911,12 +916,12 @@ def draw_reset_button(screen, buttons):
 def draw_reset_feedback(screen, game_state):
     """リセット時のフィードバックを描画する関数"""
     # 画面中央に大きなメッセージを表示
-    reset_text = large_font.render("ゲームをリセットしました！", True, ACCENT_ERROR)
+    reset_text = font_large.render("ゲームをリセットしました！", True, ACCENT_ERROR)
     text_rect = reset_text.get_rect(center=(screen.get_width() // 2, 200))
     screen.blit(reset_text, text_rect)
 
     # サブメッセージを表示
-    sub_text = button_font.render("新しい冒険の始まりだよ！", True, TEXT_SECONDARY)
+    sub_text = font_nomal.render("新しい冒険の始まりだよ！", True, TEXT_SECONDARY)
     sub_rect = sub_text.get_rect(
         center=(screen.get_width() // 2, text_rect.bottom + 10)
     )
