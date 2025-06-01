@@ -466,8 +466,22 @@ def main():
 
     # リセットボタンの色はui_components.pyで定義
 
+    # ボタン辞書を初期化
+    buttons = {
+        "work_button": work_button,
+        "buy_button": buy_button,
+        "reset_button": reset_button,
+        "upgrade_buttons": upgrade_buttons,
+        "clicked_button": None,
+        "click_time": 0,
+        "current_time": 0,
+        "clicked_upgrade": None,
+        "purchased_count": 0,
+    }
+
     while True:
         current_time = pygame.time.get_ticks() / 1000  # 秒単位の現在時刻
+        buttons["current_time"] = current_time
 
         # 自動クリックの更新
         game_state.update_auto_income(current_time)
@@ -482,32 +496,34 @@ def main():
                 mouse_pos = pygame.mouse.get_pos()
 
                 # 労働ボタンがクリックされた場合
-                if work_button.collidepoint(mouse_pos):
+                if buttons["work_button"].collidepoint(mouse_pos):
                     earned = game_state.click_work()
-                    clicked_button = "work"
-                    click_time = current_time
+                    buttons["clicked_button"] = "work"
+                    buttons["click_time"] = current_time
 
                 # 購入ボタンがクリックされた場合
-                if buy_button.collidepoint(mouse_pos):
+                if buttons["buy_button"].collidepoint(mouse_pos):
                     purchased_count = game_state.buy_game()
                     if purchased_count > 0:
-                        clicked_button = "buy"
-                        click_time = current_time
+                        buttons["clicked_button"] = "buy"
+                        buttons["click_time"] = current_time
+                        buttons["purchased_count"] = purchased_count
 
                 # アップグレードボタンがクリックされた場合
-                for i, button in enumerate(upgrade_buttons):
+                for i, button in enumerate(buttons["upgrade_buttons"]):
                     if button.collidepoint(mouse_pos):
-                        clicked_button = "upgrade"
+                        buttons["clicked_button"] = "upgrade"
+                        buttons["clicked_upgrade"] = i
+                        buttons["click_time"] = current_time
 
                         # アップグレード購入を試みる
                         success = game_state.buy_upgrade(i)
-                        if success:  # 購入に成功した場合のみ
-                            clicked_upgrade = i
-                            click_time = current_time
 
                 # リセットボタンがクリックされた場合
-                if reset_button.collidepoint(mouse_pos):
+                if buttons["reset_button"].collidepoint(mouse_pos):
                     # .envファイルを再読み込みしてゲームステータスをリセット
+                    buttons["clicked_button"] = "reset"
+                    buttons["click_time"] = current_time
                     game_state = (
                         GameState()
                     )  # これで.envファイルから最新の設定を読み込む

@@ -98,7 +98,7 @@ GRAY_800 = (31, 41, 55)  # #1F2937
 GRAY_900 = (17, 24, 39)  # #111827 - 最も濃い
 
 # テキストカラー
-TEXT_PRIMARY = (17, 24, 39)  # #111827 - メインテキスト
+TEXT_PRIMARY = (17, 17, 39)  # #111827 - メインテキスト
 TEXT_SECONDARY = (75, 85, 99)  # #4B5563 - サブテキスト
 TEXT_TERTIARY = (156, 163, 175)  # #9CA3AF - 補助テキスト
 TEXT_INVERSE = (255, 255, 255)  # #FFFFFF - 反転テキスト
@@ -106,7 +106,7 @@ TEXT_INVERSE = (255, 255, 255)  # #FFFFFF - 反転テキスト
 # UI要素の色マッピング
 INFO_PANEL_BG = BACKGROUND_TERTIARY  # 情報パネルの背景
 BUTTON_PANEL_BG = BACKGROUND_TERTIARY  # メインボタンパネルの背景
-UPGRADE_PANEL_BG = BACKGROUND_TERTIARY  # アップグレードパネルの背景
+UPGRADE_PANEL_B极 = BACKGROUND_TERTIARY  # アップグレードパネルの背景
 
 # ボタン色
 BUTTON_NORMAL_WORK = ACCENT_PRIMARY  # 労働ボタンの通常色
@@ -168,7 +168,7 @@ def load_upgrade_icons():
         "03_ai_character01_smile.png",
         "04_shopping_cart.png",
         "05_computer_game_gaming_computer.png",
-        "06_game_gamen.png",
+        "极_game_gamen.png",
     ]
 
     # アイコンを読み込む
@@ -416,11 +416,15 @@ def draw_main_buttons(screen, game_state, buttons, current_time, click_time):
         True,
         TEXT_SECONDARY,
     )
+    # 更新後のボタンRectを返す
     price_info_pos = (
         buy_button_rect.centerx - game_price_surface.get_width() // 2,
         buy_button_rect.bottom + 10,
     )
     screen.blit(game_price_surface, price_info_pos)
+
+    # 更新後のボタンRectを返す
+    return work_button_rect, buy_button_rect
 
 
 def draw_modern_button(screen, rect, text, button_type, size, is_clicked):
@@ -789,7 +793,11 @@ def draw_buttons(screen, game_state, buttons, yum_image, cold_sweat_image):
     click_time = buttons.get("click_time", 0)
 
     # メインボタン（労働、購入）を描画
-    draw_main_buttons(screen, game_state, buttons, current_time, click_time)
+    work_button_rect, buy_button_rect = draw_main_buttons(
+        screen, game_state, buttons, current_time, click_time
+    )
+    buttons["work_button"] = work_button_rect
+    buttons["buy_button"] = buy_button_rect
 
     # アップグレードパネルとボタンを描画
     draw_upgrade_panel(screen, game_state, buttons, current_time, click_time)
