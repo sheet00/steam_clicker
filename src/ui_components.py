@@ -148,12 +148,14 @@ pygame.init()
 # もしInterフォントを導入する場合は、パスを適宜変更してください。
 FONT_PATH = "C:/Windows/Fonts/meiryo.ttc"  # または "fonts/Inter-Regular.ttf" など
 
+
 font = pygame.font.Font(FONT_PATH, 32)  # heading
 button_font = pygame.font.Font(FONT_PATH, 16)  # medium body
 title_font = pygame.font.Font(FONT_PATH, 24)  # subheading
 large_font = pygame.font.Font(FONT_PATH, 20)  # large body
 small_font = pygame.font.Font(FONT_PATH, 12)  # small body (upgrade description)
 upgrade_font = pygame.font.Font(FONT_PATH, 14)  # caption (upgrade name and price)
+emoji_font = pygame.font.Font("C:/Windows/Fonts/seguiemj.ttf", 20)
 
 
 # アイコン関連の設定
@@ -168,7 +170,7 @@ def load_upgrade_icons():
         "03_ai_character01_smile.png",
         "04_shopping_cart.png",
         "05_computer_game_gaming_computer.png",
-        "极_game_gamen.png",
+        "06_game_gamen.png",
     ]
 
     # アイコンを読み込む
@@ -481,12 +483,12 @@ def draw_upgrade_panel(screen, game_state, buttons, current_time, click_time):
     clicked_upgrade = buttons.get("clicked_upgrade")
     upgrade_buttons_rects = buttons.get("upgrade_buttons", [])
 
-    # アップグレードパネルの描画（下段に配置）
+    # アップグレードパネルの描画（下段に配置） - アップグレード情報パネルの下に配置
     panel_width = screen_width - 80
-    panel_height = screen_height - 400  # 上にスペースを確保
+    panel_height = screen_height - 500  # 上にスペースを確保
     upgrade_panel = pygame.Rect(
         40,  # 左マージン
-        380,  # メインボタンの下 (180+180+20=380)
+        450,  # アップグレード情報パネルの下 (380 + 60 + 10)
         panel_width,
         panel_height,
     )
@@ -495,7 +497,7 @@ def draw_upgrade_panel(screen, game_state, buttons, current_time, click_time):
 
     # アップグレードカードの配置設定（4列表示に変更）
     card_width = (panel_width - 100) // 4  # 4列表示（間に隙間を確保）
-    card_height = 120  # カードの高さを少し縮小
+    card_height = 100  # カードの高さを100pxに縮小
     margin_top = 20
     margin_left = 20
     card_spacing_x = 20
@@ -577,7 +579,7 @@ def draw_upgrade_card(
     screen.blit(card_surface, (rect.x, rect.y))
 
     # アイコン（サイズを小さく）
-    icon_size = 40
+    icon_size = 30  # 40pxから30pxに縮小
     icon_x = rect.x + 10
     icon_y = rect.y + 10
 
@@ -586,19 +588,21 @@ def draw_upgrade_card(
         screen.blit(icon, (icon_x, icon_y))
 
     # タイトル（フォントサイズ調整）
-    title_font = pygame.font.Font(FONT_PATH, 14)
-    title_surface = title_font.render(upgrade["name"], True, TEXT_PRIMARY)
+    title_font = pygame.font.Font(FONT_PATH, 12)  # 14pxから12pxに縮小
+    # ゲーミングPCの場合は名称を統一
+    display_name = "ゲーミングPC" if index == 4 else upgrade["name"]
+    title_surface = title_font.render(display_name, True, TEXT_PRIMARY)
     screen.blit(title_surface, (icon_x + icon_size + 8, icon_y))
 
     # 価格（フォントサイズ調整）
-    price_font = pygame.font.Font(FONT_PATH, 16)
+    price_font = pygame.font.Font(FONT_PATH, 14)  # 16pxから14pxに縮小
     price_text = format_japanese_currency(upgrade["cost"])
     price_color = ACCENT_SUCCESS if is_affordable else TEXT_TERTIARY
     price_surface = price_font.render(price_text, True, price_color)
     screen.blit(price_surface, (icon_x + icon_size + 8, icon_y + 20))
 
     # 所持数/レベル（フォントサイズ調整）
-    count_font = pygame.font.Font(FONT_PATH, 12)
+    count_font = pygame.font.Font(FONT_PATH, 10)  # 12pxから10pxに縮小
     if index == 4:  # ゲーミングPC
         count_text = (
             f"Lv.{game_state.gaming_pc_level}"
@@ -611,9 +615,89 @@ def draw_upgrade_card(
     screen.blit(count_surface, (icon_x + icon_size + 8, icon_y + 40))
 
     # 説明文（フォントサイズ調整）
-    desc_font = pygame.font.Font(FONT_PATH, 10)
+    desc_font = pygame.font.Font(FONT_PATH, 8)  # 10pxから8pxに縮小
     desc_surface = desc_font.render(upgrade["description"], True, TEXT_TERTIARY)
-    screen.blit(desc_surface, (rect.x + 10, rect.y + rect.height - 20))
+    screen.blit(desc_surface, (rect.x + 10, rect.y + rect.height - 15))  # 位置調整
+
+
+def draw_upgrade_status_panel(screen, game_state):
+    """アップグレード情報表示パネルを描画する関数"""
+    # パネルの位置とサイズ
+    panel_width = screen.get_width() - 80
+    panel_height = 60
+    panel_x = 40
+    panel_y = 380  # メインボタンの下
+
+    # パネルの背景
+    pygame.draw.rect(
+        screen,
+        BACKGROUND_TERTIARY,
+        (panel_x, panel_y, panel_width, panel_height),
+        border_radius=12,
+    )
+    pygame.draw.rect(
+        screen,
+        GRAY_200,
+        (panel_x, panel_y, panel_width, panel_height),
+        2,
+        border_radius=12,
+    )
+
+    # 列の幅
+    col_width = panel_width // 6
+
+    # 1行目: 基本情報
+    base_texts = [
+        "💼 労働DX化",
+        "🛒 同時購入",
+        "🤖 労働自動化",
+        "⚡ 購入自動化",
+        "🎮 ゲーミングPC",  # 修正: ゲーミング → ゲーミングPC
+        "🚀 アーリーアクセス",
+    ]
+
+    # 2行目: 具体的効果
+    effect_texts = [
+        # 労働DX化
+        f"{int(game_state.upgrades[0]['count'] * game_state.work_unit_up_percent)}%アップ",
+        # 同時購入
+        f"{format_purchase_count(game_state.purchase_count)}個/回",
+        # 労働自動化
+        f"毎秒{game_state.auto_clicks}回クリック",
+        # 購入自動化
+        f"{game_state.auto_purchase_interval}秒毎に{game_state.auto_purchases}回購入",
+        # ゲーミングPC (修正: 表記を統一)
+        f"効率+{int(game_state.gaming_pc_level * game_state.gaming_pc_efficiency_bonus * 100)}% "
+        f"購入間隔-{int(game_state.gaming_pc_level * game_state.gaming_pc_interval_reduction * 100)}%",
+        # アーリーアクセス
+        f"投資額 {format_japanese_currency(game_state.total_early_access_investment)} 最大還元率 {int(game_state.early_access_return_percent*100)}%",
+    ]
+
+    # テキストを描画（絵文字とテキストを分離）
+    for i, text in enumerate(base_texts):
+        x = panel_x + i * col_width + col_width // 2
+        y = panel_y + 15
+
+        # 絵文字とテキストを分離（最初の1文字が絵文字）
+        emoji_char = text[0]
+        text_part = text[2:]  # 絵文字とスペースを除いた部分
+
+        # 絵文字部分の描画
+        emoji_surface = emoji_font.render(emoji_char, True, TEXT_PRIMARY)
+        emoji_rect = emoji_surface.get_rect(midright=(x - 5, y))
+        screen.blit(emoji_surface, emoji_rect)
+
+        # テキスト部分の描画
+        text_surface = small_font.render(text_part, True, TEXT_PRIMARY)
+        text_rect = text_surface.get_rect(midleft=(x, y))
+        screen.blit(text_surface, text_rect)
+
+    for i, text in enumerate(effect_texts):
+        x = panel_x + i * col_width + col_width // 2
+        y = panel_y + 35
+        text_surface = small_font.render(text, True, TEXT_SECONDARY)
+        text_rect = text_surface.get_rect(center=(x, y))
+        screen.blit(text_surface, text_rect)
 
 
 # パーティクルシステムを初期化

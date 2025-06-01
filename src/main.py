@@ -8,6 +8,7 @@ from ui_components import (
     draw_buttons,
     init_particle_manager,
     BACKGROUND_PRIMARY,
+    draw_upgrade_status_panel,  # 追加
 )
 from config_loader import load_env_file
 import pygame.gfxdraw  # グラスモーフィズム効果のために追加
@@ -575,6 +576,9 @@ def main():
         # 画面の描画 (背景は既に描画済み)
         draw_texts(screen, game_state)  # draw_stats_cardsを呼び出す
         draw_buttons(screen, game_state, buttons, yum_image, cold_sweat_image)
+        draw_upgrade_status_panel(
+            screen, game_state
+        )  # アップグレード情報表示パネルを追加
 
         pygame.display.update()
         clock.tick(60)
