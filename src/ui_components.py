@@ -485,7 +485,7 @@ def draw_upgrade_panel(screen, game_state, buttons, current_time, click_time):
     panel_height = screen_height - 400  # 画面縦幅を大きくするため
     upgrade_panel = pygame.Rect(
         40,  # 左マージン
-        450,  # アップグレード情報パネルの下 (380 + 60 + 10)
+        480,  # アップグレード情報パネルの下 (380 + 60 + 10)
         panel_width,
         panel_height,
     )
@@ -615,7 +615,7 @@ def draw_upgrade_status_panel(screen, game_state):
     """アップグレード情報表示パネルを描画する関数"""
     # パネルの位置とサイズ
     panel_width = screen.get_width() - 80
-    panel_height = 60
+    panel_height = 80
     panel_x = 40
     panel_y = 380  # メインボタンの下
 
@@ -658,8 +658,7 @@ def draw_upgrade_status_panel(screen, game_state):
         # 購入自動化
         f"{game_state.auto_purchase_interval}秒毎に{game_state.auto_purchases}回購入",
         # ゲーミングPC (修正: 表記を統一)
-        f"効率+{int(game_state.gaming_pc_level * game_state.gaming_pc_efficiency_bonus * 100)}% "
-        f"購入間隔-{int(game_state.gaming_pc_level * game_state.gaming_pc_interval_reduction * 100)}%",
+        "",  # ゲーミングPCのテキストは描画時に特別処理するので空にする
         # アーリーアクセス
         f"投資額 {format_japanese_currency(game_state.total_early_access_investment)} 最大還元率 {int(game_state.early_access_return_percent*100)}%",
     ]
@@ -685,10 +684,27 @@ def draw_upgrade_status_panel(screen, game_state):
 
     for i, text in enumerate(effect_texts):
         x = panel_x + i * col_width + col_width // 2
-        y = panel_y + 35
-        text_surface = font_small.render(text, True, TEXT_SECONDARY)
-        text_rect = text_surface.get_rect(center=(x, y))
-        screen.blit(text_surface, text_rect)
+        y = panel_y + 40
+
+        if i == 4:  # ゲーミングPCの場合
+            # 1行目: 効率と購入間隔
+            line1_text = (
+                f"効率+{int(game_state.gaming_pc_level * game_state.gaming_pc_efficiency_bonus * 100)}% "
+                f"購入間隔-{int(game_state.gaming_pc_level * game_state.gaming_pc_interval_reduction * 100)}%"
+            )
+            line1_surface = font_small.render(line1_text, True, TEXT_SECONDARY)
+            line1_rect = line1_surface.get_rect(center=(x, y))
+            screen.blit(line1_surface, line1_rect)
+
+            # 2行目: 配信収益
+            line2_text = f"配信収益+{format_japanese_currency(game_state.stock * game_state.gaming_pc_level * game_state.gaming_pc_income_per_game)}/秒"
+            line2_surface = font_small.render(line2_text, True, TEXT_SECONDARY)
+            line2_rect = line2_surface.get_rect(center=(x, y + 20))
+            screen.blit(line2_surface, line2_rect)
+        else:
+            text_surface = font_small.render(text, True, TEXT_SECONDARY)
+            text_rect = text_surface.get_rect(center=(x, y))
+            screen.blit(text_surface, text_rect)
 
 
 # パーティクルシステムを初期化
