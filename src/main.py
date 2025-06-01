@@ -123,42 +123,42 @@ class GameState:
                 "cost": self.efficiency_tool_cost,
                 "effect": self.work_unit_up_percent,  # 賃金アップ率（%）
                 "count": 0,
-                "description": f"賃金が{self.work_unit_up_percent}%アップ",
+                "description": f"労働をDX化して業務効率化！\n賃金が{self.work_unit_up_percent}%アップ",
             },
             {
                 "name": "同時購入数アップ",
                 "cost": self.bulk_purchase_cost,
                 "effect": self.purchase_power_up_percent,  # 購入数アップ率（%）
                 "count": 0,
-                "description": f"購入数が{self.purchase_power_up_percent}%アップ",
+                "description": f"一括大量購入で、無駄遣いも効率的に！\n購入数が{self.purchase_power_up_percent}%アップ",
             },
             {
                 "name": "労働自動化ツール",
                 "cost": self.auto_work_tool_cost,
                 "effect": self.auto_click_up_percent,  # 自動クリック%アップ
                 "count": 0,
-                "description": f"毎秒の自動クリック回数+{self.auto_click_up_percent}%アップ",
+                "description": f"全自動で働いてくれるロボット\n毎秒の自動クリック回数+{self.auto_click_up_percent}%アップ",
             },
             {
                 "name": "購入自動化ツール",
                 "cost": self.auto_purchase_tool_cost,
                 "effect": self.auto_purchase_up_percent,  # 購入自動化%アップ
                 "count": 0,
-                "description": f"{self.auto_purchase_interval:.1f}秒ごとの自動購入回数+{self.auto_purchase_up_percent}%アップ",
+                "description": f"勝手にゲームを購入してくれるロボット\n{self.auto_purchase_interval:.1f}秒ごとの自動購入回数+{self.auto_purchase_up_percent}%アップ",
             },
             {
                 "name": "ゲーミングPC",
                 "cost": self.gaming_pc_base_cost,
                 "effect": self.gaming_pc_level,  # 現在のPCレベル
                 "count": 0,
-                "description": "積みゲーをプレイして配信！ レベルアップで収益UP",
+                "description": f"ゲーミングPCで配信収益\n購入自動化時間短縮、配信収益",
             },
             {
                 "name": "アーリーアクセス",
                 "cost": self.early_access_cost,
                 "effect": self.early_access_return_percent,  # 基本の資産増加率（%）
                 "count": 0,
-                "description": f"開発中のゲームに投資！投資額が変動して還元されます",
+                "description": f"未完成の夢に投資しよう\n保持するゲーム数*成長率の収入",
             },
         ]
 

@@ -272,18 +272,6 @@ def draw_stats_cards(screen, game_state):
     # カードのデータ (総資産、積みゲー、賃金の3要素)
     cards_data = [
         {
-            "icon": "💰",
-            "title": "総資産",
-            "value": format_japanese_currency(game_state.money),
-            "subtitle": "",
-        },
-        {
-            "icon": "🎮",
-            "title": "積みゲー",
-            "value": f"{format_number(game_state.stock)}個",
-            "subtitle": "",
-        },
-        {
             "icon": "💼",
             "title": "賃金",
             "value": format_japanese_currency(
@@ -298,7 +286,19 @@ def draw_stats_cards(screen, game_state):
                     )
                 )
             ),
-            "subtitle": "",
+            "subtitle": "労働1回あたりの賃金",
+        },
+        {
+            "icon": "💰",
+            "title": "総資産",
+            "value": format_japanese_currency(game_state.money),
+            "subtitle": "資産すべて",
+        },
+        {
+            "icon": "🎮",
+            "title": "積みゲー",
+            "value": f"{format_number(game_state.stock)}個",
+            "subtitle": "購入したゲーム数",
         },
     ]
 
@@ -511,7 +511,7 @@ def draw_upgrade_panel(screen, game_state, buttons, current_time, click_time):
 
     # アップグレードカードの配置設定（3列表示に変更）
     card_width = (panel_width - 100) // 3  # 3列表示（間に隙間を確保）
-    card_height = 160
+    card_height = 180
     margin_top = 20
     margin_left = 20
     card_spacing_x = 20
@@ -624,8 +624,13 @@ def draw_upgrade_card(
     screen.blit(count_surface, (icon_x + icon_size + 20, icon_y + 60))
 
     # 説明文
-    desc_surface = font_small.render(upgrade["description"], True, TEXT_TERTIARY)
-    screen.blit(desc_surface, (rect.x + 10, rect.y + rect.height - 30))
+    description_lines = upgrade["description"].split("\n")
+    line_height = font_small.get_height()
+    for i, line in enumerate(description_lines):
+        desc_surface = font_small.render(line, True, TEXT_TERTIARY)
+        screen.blit(
+            desc_surface, (rect.x + 10, rect.y + rect.height - 50 + (i * line_height))
+        )
 
 
 def draw_upgrade_status_panel(screen, game_state):
